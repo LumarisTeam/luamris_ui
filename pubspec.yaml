@@ -1,0 +1,23 @@
+name: luamris_ui
+description: LuamrisTeam Flutter UI kit — Apple-style Cupertino components for campus apps.
+version: 0.2.0
+homepage: https://github.com/YoChine-Lanee/luamris_ui
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.0.10+1
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  # No assets or fonts needed — uses system font only.
