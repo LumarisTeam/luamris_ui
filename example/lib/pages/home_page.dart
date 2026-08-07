@@ -16,7 +16,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = context.mc;
+    // final m = context.mc;
 
     return McPageScaffold(
       title: 'Luamris UI',
@@ -24,11 +24,6 @@ class HomePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Apple 风格 Flutter UI 组件库',
-            style: m.textMuted,
-          ),
-          const SizedBox(height: 24),
           _SectionCard(
             icon: CupertinoIcons.circle_grid_3x3_fill,
             title: '按钮 McButton',

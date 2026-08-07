@@ -107,6 +107,7 @@ class BottomSheetDemo extends StatelessWidget {
       title: '确认删除',
       message: '此操作无法撤销，确定要删除该项吗？',
       confirmText: '删除',
+      cancelText: '取消',
       destructive: true,
     );
     if (result == true && context.mounted) {
