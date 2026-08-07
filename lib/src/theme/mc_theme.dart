@@ -52,9 +52,9 @@ abstract final class McThemeData {
       ),
       scaffoldBackgroundColor: colors.background,
       canvasColor: colors.background,
-      dividerColor: colors.border,
+      dividerColor: colors.separator,
       cardColor: colors.card,
-      disabledColor: colors.mutedForeground,
+      disabledColor: colors.tertiaryLabel,
       shadowColor: const Color(0x1A000000),
       extensions: [colors],
 
@@ -133,7 +133,7 @@ abstract final class McThemeData {
 
       // ── List Tile ──
       listTileTheme: ListTileThemeData(
-        iconColor: colors.mutedForeground,
+        iconColor: colors.secondaryLabel,
         textColor: colors.foreground,
       ),
 

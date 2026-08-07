@@ -35,18 +35,28 @@ class McTheme {
   // ── Colors ────────────────────────────────────────────────────────────────
 
   Color get primary => _colors.primary;
+  Color get primarySoft => _colors.primarySoft;
   Color get primaryForeground => _colors.primaryForeground;
   Color get background => _colors.background;
   Color get foreground => _colors.foreground;
+  Color get secondaryLabel => _colors.secondaryLabel;
+  Color get tertiaryLabel => _colors.tertiaryLabel;
+  Color get quaternaryLabel => _colors.quaternaryLabel;
   Color get card => _colors.card;
   Color get cardForeground => _colors.cardForeground;
   Color get secondary => _colors.secondary;
   Color get secondaryForeground => _colors.secondaryForeground;
   Color get muted => _colors.muted;
-  Color get mutedForeground => _colors.mutedForeground;
+  Color get mutedForeground => _colors.secondaryLabel; // legacy alias
+  Color get separator => _colors.separator;
   Color get border => _colors.border;
   Color get input => _colors.input;
+  Color get success => _colors.success;
+  Color get successSoft => _colors.successSoft;
+  Color get warning => _colors.warning;
+  Color get warningSoft => _colors.warningSoft;
   Color get destructive => _colors.destructive;
+  Color get dangerSoft => _colors.dangerSoft;
   Color get hot => _colors.hot;
 
   // ── Text styles ───────────────────────────────────────────────────────────

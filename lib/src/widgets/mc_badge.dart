@@ -69,18 +69,9 @@ class McBadge extends StatelessWidget {
 
     final (Color bg, Color fg) = switch (_tint) {
       _McBadgeTint.neutral => (m.secondary, m.foreground),
-      _McBadgeTint.success => (
-          const Color(0xFF34C759).withValues(alpha: 0.15),
-          const Color(0xFF34C759)
-        ),
-      _McBadgeTint.warning => (
-          const Color(0xFFFF9500).withValues(alpha: 0.15),
-          const Color(0xFFFF9500)
-        ),
-      _McBadgeTint.error => (
-          m.destructive.withValues(alpha: 0.12),
-          m.destructive
-        ),
+      _McBadgeTint.success => (m.successSoft, m.success),
+      _McBadgeTint.warning => (m.warningSoft, m.warning),
+      _McBadgeTint.error => (m.dangerSoft, m.destructive),
       null => (
           backgroundColor ?? m.secondary,
           foregroundColor ?? m.foreground,

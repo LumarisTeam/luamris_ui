@@ -40,7 +40,7 @@ class BadgesDemo extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     McBadge(
-                      backgroundColor: m.primary.withValues(alpha: 0.12),
+                      backgroundColor: m.primarySoft,
                       foregroundColor: m.primary,
                       child: const Text('新课推荐'),
                     ),

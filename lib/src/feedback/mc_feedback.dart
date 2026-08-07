@@ -41,7 +41,7 @@ abstract final class McFeedback {
       message: message,
       title: title,
       icon: CupertinoIcons.check_mark_circled_solid,
-      tint: const Color(0xFF34C759),
+      tint: context.mc.success,
     );
   }
 
@@ -297,7 +297,7 @@ class _McFeedbackAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = context.mc;
     final backgroundColor = isDestructive
-        ? m.destructive.withValues(alpha: 0.12)
+        ? m.dangerSoft
         : isPrimary
             ? m.primary
             : m.secondary;
