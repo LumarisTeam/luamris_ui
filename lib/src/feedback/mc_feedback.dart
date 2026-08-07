@@ -141,7 +141,6 @@ class _McFeedbackToast extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final m = context.mc;
-    final resolvedTint = CupertinoDynamicColor.resolve(tint, context);
 
     return Positioned(
       left: 20,
@@ -170,7 +169,7 @@ class _McFeedbackToast extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(icon, color: resolvedTint, size: 20),
+                        Icon(icon, color: tint, size: 20),
                         const SizedBox(width: 10),
                         Flexible(
                           child: Column(
@@ -300,13 +299,13 @@ class _McFeedbackAction extends StatelessWidget {
     final backgroundColor = isDestructive
         ? m.destructive.withValues(alpha: 0.12)
         : isPrimary
-        ? m.primary
-        : m.secondary;
+            ? m.primary
+            : m.secondary;
     final foregroundColor = isDestructive
         ? m.destructive
         : isPrimary
-        ? m.primaryForeground
-        : m.foreground;
+            ? m.primaryForeground
+            : m.foreground;
 
     return CupertinoButton(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),

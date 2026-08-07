@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 import 'mc_colors.dart';
 import 'mc_radii.dart';
@@ -9,8 +9,8 @@ import 'mc_shadows.dart';
 // =============================================================================
 
 /// Extension on [BuildContext] that provides a single entry point to all
-/// design tokens. Colors are automatically resolved via
-/// [CupertinoDynamicColor] so they follow the ambient brightness.
+/// design tokens. Colors are resolved from the ambient [McColors]
+/// [ThemeExtension] so they follow the current brightness automatically.
 ///
 /// ```dart
 /// final bg = context.mc.background;
@@ -22,30 +22,32 @@ extension McContext on BuildContext {
   McTheme get mc => McTheme._(this);
 }
 
-/// Lazy theme reference. Resolves dynamic colors on each property access
-/// so values always reflect the current [Brightness] of the owning context.
+/// Lazy theme reference. Reads color tokens from [McColors] via
+/// [ThemeExtension] so values always reflect the current [Brightness]
+/// of the owning context.
 class McTheme {
   final BuildContext _context;
   const McTheme._(this._context);
 
-  Color _r(Color c) => CupertinoDynamicColor.resolve(c, _context);
+  McColors get _colors =>
+      Theme.of(_context).extension<McColors>() ?? McColors.light;
 
   // ── Colors ────────────────────────────────────────────────────────────────
 
-  Color get primary           => _r(McColors.primary);
-  Color get primaryForeground => _r(McColors.primaryForeground);
-  Color get background        => _r(McColors.background);
-  Color get foreground        => _r(McColors.foreground);
-  Color get card              => _r(McColors.card);
-  Color get cardForeground    => _r(McColors.cardForeground);
-  Color get secondary         => _r(McColors.secondary);
-  Color get secondaryForeground => _r(McColors.secondaryForeground);
-  Color get muted             => _r(McColors.muted);
-  Color get mutedForeground   => _r(McColors.mutedForeground);
-  Color get border            => _r(McColors.border);
-  Color get input             => _r(McColors.input);
-  Color get destructive       => _r(McColors.destructive);
-  Color get hot               => _r(McColors.hot);
+  Color get primary => _colors.primary;
+  Color get primaryForeground => _colors.primaryForeground;
+  Color get background => _colors.background;
+  Color get foreground => _colors.foreground;
+  Color get card => _colors.card;
+  Color get cardForeground => _colors.cardForeground;
+  Color get secondary => _colors.secondary;
+  Color get secondaryForeground => _colors.secondaryForeground;
+  Color get muted => _colors.muted;
+  Color get mutedForeground => _colors.mutedForeground;
+  Color get border => _colors.border;
+  Color get input => _colors.input;
+  Color get destructive => _colors.destructive;
+  Color get hot => _colors.hot;
 
   // ── Text styles ───────────────────────────────────────────────────────────
 
@@ -93,10 +95,10 @@ class McTheme {
 
   // ── Radii ─────────────────────────────────────────────────────────────────
 
-  double get radiusSm  => McRadii.sm;
-  double get radiusMd  => McRadii.md;
-  double get radiusLg  => McRadii.lg;
-  double get radiusXl  => McRadii.xl;
+  double get radiusSm => McRadii.sm;
+  double get radiusMd => McRadii.md;
+  double get radiusLg => McRadii.lg;
+  double get radiusXl => McRadii.xl;
   double get radiusXxl => McRadii.xxl;
   double get radiusPill => McRadii.pill;
 

@@ -76,13 +76,13 @@ class BottomSheetDemo extends StatelessWidget {
                 child: Column(
                   children: [
                     McListTile(
-                      leading: const Icon(CupertinoIcons.paperplane, color: McColors.primary),
+                      leading: Icon(CupertinoIcons.paperplane, color: m.primary),
                       title: const Text('发送给好友'),
                       onTap: () => Navigator.of(ctx).pop(),
                     ),
                     Container(height: 1, color: m.border.withValues(alpha: 0.4)),
                     McListTile(
-                      leading: const Icon(CupertinoIcons.link, color: McColors.primary),
+                      leading: Icon(CupertinoIcons.link, color: m.primary),
                       title: const Text('复制链接'),
                       onTap: () => Navigator.of(ctx).pop(),
                     ),

@@ -1,21 +1,17 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
-import 'mc_colors.dart';
+import 'mc_context.dart';
 import 'mc_radii.dart';
 
 /// Pre-built [BoxDecoration] factories for common surface styles.
 abstract final class McDecorations {
   /// Standard card surface with a subtle border.
   static BoxDecoration card(BuildContext context, {double radius = McRadii.xl}) {
+    final m = context.mc;
     return BoxDecoration(
-      color: CupertinoDynamicColor.resolve(McColors.card, context),
+      color: m.card,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(
-        color: CupertinoDynamicColor.resolve(
-          McColors.border,
-          context,
-        ).withValues(alpha: 0.5),
-      ),
+      border: Border.all(color: m.border.withValues(alpha: 0.5)),
     );
   }
 
@@ -24,49 +20,41 @@ abstract final class McDecorations {
     BuildContext context, {
     double radius = McRadii.xl,
   }) {
+    final m = context.mc;
     return BoxDecoration(
-      color: CupertinoDynamicColor.resolve(McColors.secondary, context),
+      color: m.secondary,
       borderRadius: BorderRadius.circular(radius),
     );
   }
 
   /// Glass-morphism surface — semi-transparent with a subtle border.
-  static BoxDecoration glass(BuildContext context, {double radius = McRadii.xl}) {
+  static BoxDecoration glass(
+    BuildContext context, {
+    double radius = McRadii.xl,
+  }) {
+    final m = context.mc;
     return BoxDecoration(
-      color: CupertinoDynamicColor.resolve(
-        McColors.card,
-        context,
-      ).withValues(alpha: 0.7),
+      color: m.card.withValues(alpha: 0.7),
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(
-        color: CupertinoDynamicColor.resolve(
-          McColors.border,
-          context,
-        ).withValues(alpha: 0.3),
-      ),
+      border: Border.all(color: m.border.withValues(alpha: 0.3)),
     );
   }
 
   /// Pill-shaped container — ideal for badges, chips, and tags.
-  ///
-  /// [background] and [border] default to the design system's secondary
-  /// and border colors respectively.
   static BoxDecoration pill(
     BuildContext context, {
-    Color background = McColors.secondary,
-    Color border = McColors.border,
+    Color? background,
+    Color? border,
     bool showBorder = false,
   }) {
+    final m = context.mc;
+    final bg = background ?? m.secondary;
+    final bd = border ?? m.border;
     return BoxDecoration(
-      color: CupertinoDynamicColor.resolve(background, context),
+      color: bg,
       borderRadius: BorderRadius.circular(McRadii.pill),
       border: showBorder
-          ? Border.all(
-              color: CupertinoDynamicColor.resolve(
-                border,
-                context,
-              ).withValues(alpha: 0.45),
-            )
+          ? Border.all(color: bd.withValues(alpha: 0.45))
           : null,
     );
   }

@@ -12,10 +12,7 @@ import 'bottom_sheet_demo.dart';
 import 'responsive_demo.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.themeIcon, required this.onToggleTheme});
-
-  final IconData themeIcon;
-  final VoidCallback onToggleTheme;
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +21,6 @@ class HomePage extends StatelessWidget {
     return McPageScaffold(
       title: 'Luamris UI',
       navigationBarStyle: McNavigationBarStyle.large,
-      trailing: CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: Size.zero,
-        onPressed: onToggleTheme,
-        child: Icon(themeIcon, color: m.primary, size: 22),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

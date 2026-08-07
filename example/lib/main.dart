@@ -1,73 +1,37 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:luamris_ui/luamris_ui.dart';
 
 import 'pages/home_page.dart';
 
-enum _AppTheme { system, light, dark }
+enum _AppMode { materialSystem, cupertinoSystem }
 
 void main() {
   runApp(const ExampleApp());
 }
 
-class ExampleApp extends StatefulWidget {
+class ExampleApp extends StatelessWidget {
   const ExampleApp({super.key});
 
-  @override
-  State<ExampleApp> createState() => _ExampleAppState();
-}
-
-class _ExampleAppState extends State<ExampleApp> {
-  _AppTheme _theme = _AppTheme.system;
-
-  void _cycleTheme() {
-    setState(() {
-      _theme = switch (_theme) {
-        _AppTheme.system => _AppTheme.light,
-        _AppTheme.light => _AppTheme.dark,
-        _AppTheme.dark => _AppTheme.system,
-      };
-    });
-  }
-
-  IconData _themeIcon() => switch (_theme) {
-        _AppTheme.system => CupertinoIcons.gear,
-        _AppTheme.light => CupertinoIcons.sun_max_fill,
-        _AppTheme.dark => CupertinoIcons.moon_fill,
-      };
+  final _AppMode _mode = _AppMode.cupertinoSystem;
 
   @override
   Widget build(BuildContext context) {
+    final isMaterial = _mode == _AppMode.materialSystem;
+
+    if (isMaterial) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: McThemeData.materialTheme(McColors.light),
+        darkTheme: McThemeData.materialTheme(McColors.dark),
+        home: HomePage(),
+      );
+    }
+
     return CupertinoApp(
       debugShowCheckedModeBanner: false,
-      home: _ThemeWrapper(
-        theme: _theme,
-        child: HomePage(
-          themeIcon: _themeIcon(),
-          onToggleTheme: _cycleTheme,
-        ),
-      ),
-    );
-  }
-}
-
-/// Resolves the app-wide [Brightness] and applies it via [CupertinoTheme].
-class _ThemeWrapper extends StatelessWidget {
-  const _ThemeWrapper({required this.theme, required this.child});
-
-  final _AppTheme theme;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final platformBrightness = MediaQuery.platformBrightnessOf(context);
-    final brightness = switch (theme) {
-      _AppTheme.system => platformBrightness,
-      _AppTheme.light => Brightness.light,
-      _AppTheme.dark => Brightness.dark,
-    };
-
-    return CupertinoTheme(
-      data: CupertinoThemeData(brightness: brightness),
-      child: child,
+      builder: (context, child) => McThemeData.wrap(child: child!),
+      home: HomePage(),
     );
   }
 }

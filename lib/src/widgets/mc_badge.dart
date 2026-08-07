@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
-import '../theme/mc_colors.dart';
 import '../theme/mc_context.dart';
 
 // =============================================================================
@@ -24,12 +23,12 @@ class McBadge extends StatelessWidget {
   final Color? backgroundColor;
   final Color? foregroundColor;
 
-  /// Default badge with explicit [backgroundColor] and [foregroundColor].
+  /// Default badge with optional explicit [backgroundColor] and [foregroundColor].
   const McBadge({
     super.key,
     required this.child,
-    this.backgroundColor = McColors.secondary,
-    this.foregroundColor = McColors.foreground,
+    this.backgroundColor,
+    this.foregroundColor,
   }) : _tint = null;
 
   /// Neutral / default tint.
@@ -70,9 +69,18 @@ class McBadge extends StatelessWidget {
 
     final (Color bg, Color fg) = switch (_tint) {
       _McBadgeTint.neutral => (m.secondary, m.foreground),
-      _McBadgeTint.success => (const Color(0xFF34C759).withValues(alpha: 0.15), const Color(0xFF34C759)),
-      _McBadgeTint.warning => (const Color(0xFFFF9500).withValues(alpha: 0.15), const Color(0xFFFF9500)),
-      _McBadgeTint.error => (m.destructive.withValues(alpha: 0.12), m.destructive),
+      _McBadgeTint.success => (
+          const Color(0xFF34C759).withValues(alpha: 0.15),
+          const Color(0xFF34C759)
+        ),
+      _McBadgeTint.warning => (
+          const Color(0xFFFF9500).withValues(alpha: 0.15),
+          const Color(0xFFFF9500)
+        ),
+      _McBadgeTint.error => (
+          m.destructive.withValues(alpha: 0.12),
+          m.destructive
+        ),
       null => (
           backgroundColor ?? m.secondary,
           foregroundColor ?? m.foreground,

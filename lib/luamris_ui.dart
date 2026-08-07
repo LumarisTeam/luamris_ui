@@ -5,6 +5,7 @@ export 'src/theme/mc_shadows.dart';
 export 'src/theme/mc_text_styles.dart';
 export 'src/theme/mc_decorations.dart';
 export 'src/theme/mc_context.dart';
+export 'src/theme/mc_theme.dart';
 
 // Widgets
 export 'src/widgets/mc_page_scaffold.dart';

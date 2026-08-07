@@ -87,11 +87,11 @@ class _BreakpointInfo extends StatelessWidget {
       children: [
         Row(
           children: [
-            _chip(context, '当前设备', deviceLabel(), McColors.primary),
+            _chip(context, '当前设备', deviceLabel(), m.primary),
             const SizedBox(width: 8),
-            _chip(context, 'Phone', isPhone ? '✓' : '—', McColors.primary),
-            _chip(context, 'Tablet', isTablet ? '✓' : '—', McColors.primary),
-            _chip(context, 'Desktop', isDesktop ? '✓' : '—', McColors.primary),
+            _chip(context, 'Phone', isPhone ? '✓' : '—', m.primary),
+            _chip(context, 'Tablet', isTablet ? '✓' : '—', m.primary),
+            _chip(context, 'Desktop', isDesktop ? '✓' : '—', m.primary),
           ],
         ),
       ],
@@ -151,7 +151,7 @@ class _ResponsiveValues extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label, style: m.textBody)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: McColors.primary)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: m.primary)),
         ],
       ),
     );
