@@ -20,9 +20,11 @@ class _FieldsDemoState extends State<FieldsDemo> {
       navigationBarStyle: McNavigationBarStyle.compact,
       child: Form(
         key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SingleChildScrollView(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             _sectionTitle('Text 文本输入', m),
             const SizedBox(height: 10),
             McCard.elevated(
@@ -75,7 +77,8 @@ class _FieldsDemoState extends State<FieldsDemo> {
               },
               child: const Text('提交表单'),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
