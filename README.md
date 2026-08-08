@@ -1,6 +1,6 @@
 # luamris_ui
 
-> Apple 风格 Flutter UI 组件库，基于 Cupertino，原生支持亮色 / 暗色模式。
+> Apple 风格 Flutter UI 组件库，同时支持 **Material** 与 **Cupertino** 应用框架，原生亮色 / 暗色模式。
 >
 > 为 LuamrisTeam 的课表、校园集市等 Flutter App 提供一致的设计语言。
 
@@ -27,6 +27,8 @@ import 'package:luamris_ui/luamris_ui.dart';
 
 ## 快速上手
 
+### Cupertino 应用（推荐 iOS 风格）
+
 ```dart
 import 'package:flutter/cupertino.dart';
 import 'package:luamris_ui/luamris_ui.dart';
@@ -49,6 +51,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return CupertinoApp(
       themeMode: _themeMode, // ← 原生切换，自动通知整棵树
+      builder: (context, child) => McThemeData.wrap(child: child!), // ← 注入主题
       home: HomePage(
         onToggleTheme: () {
           setState(() {
@@ -61,7 +64,37 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+```
 
+### Material 应用
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:luamris_ui/luamris_ui.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: McThemeData.materialTheme(McColors.light),     // ← 浅色主题
+      darkTheme: McThemeData.materialTheme(McColors.dark),  // ← 深色主题
+      home: const HomePage(),
+    );
+  }
+}
+```
+
+> `McThemeData.materialTheme()` 自动配置 `ColorScheme`、`AppBarTheme`、`CardTheme`、`InputDecorationTheme` 等全部组件主题，无需额外设置。
+
+### 页面示例
+
+```dart
 class HomePage extends StatelessWidget {
   const HomePage({super.key, this.onToggleTheme});
 
@@ -101,13 +134,14 @@ class HomePage extends StatelessWidget {
 
 ## 设计理念
 
-**只记一个入口：`context.mc`。** 所有颜色、字体、圆角、阴影、装饰全部通过 `context.mc.xxx` 获取，暗色模式自动跟随 `CupertinoApp.themeMode`。
+**只记一个入口：`context.mc`。** 所有颜色、字体、圆角、阴影、装饰全部通过 `context.mc.xxx` 获取，暗色模式自动跟随。
 
 ```dart
-final bg   = context.mc.background;  // Color，自动跟随亮/暗
-final card = context.mc.cardDecoration(); // BoxDecoration
-final text = context.mc.textTitle;   // TextStyle
-final r    = context.mc.radiusLg;    // 16
+final bg      = context.mc.background;   // Color，自动跟随亮/暗
+final card    = context.mc.cardDecoration(); // BoxDecoration
+final title   = context.mc.textTitle;    // TextStyle
+final r       = context.mc.radiusLg;     // 16
+final primary = context.mc.primary;      // Color，主色调
 ```
 
 ---
@@ -158,7 +192,7 @@ final r    = context.mc.radiusLg;    // 16
 | 构造 | 说明 |
 |------|------|
 | `.placeholder(icon:, title:, description:)` | 空状态：图标 + 标题 + 描述 |
-| `.retry(title:, description:, onRetry:)` | 错误重试状态，自动带重试按钮 |
+| `.retry(title:, description:, onRetry:)`) | 错误重试状态，自动带重试按钮 |
 
 ### 表单 — `McField`
 
@@ -202,29 +236,68 @@ final r    = context.mc.radiusLg;    // 16
 
 ### 颜色 `context.mc.xxx`
 
-| Token | 亮色 | 暗色 |
-|-------|------|------|
-| `.primary` | `#0071E3` | `#0071E3` |
-| `.primaryForeground` | `#FFFFFF` | `#FFFFFF` |
-| `.background` | `#FFFFFF` | `#000000` |
-| `.foreground` | `#1D1D1F` | `#F5F5F7` |
-| `.card` | `#FFFFFF` | `#1C1C1E` |
-| `.secondary` | `#F5F5F7` | `#2C2C2E` |
-| `.mutedForeground` | `#86868B` | `#86868B` |
-| `.border` | `#E5E5E7` | `#2C2C2E` |
-| `.destructive` | `#FF3B30` | `#FF453A` |
-| `.hot` | `#FF7A00` | `#FF7A00` |
+#### Accent（强调色）
+
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `.primary` | `#0071E3` | `#0071E3` | 主色调 |
+| `.primarySoft` | `#0071E3` × 12% | `#0071E3` × 15% | 主色软背景（选中 chip、图标底色） |
+| `.primaryForeground` | `#FFFFFF` | `#FFFFFF` | 主色上的文字/图标 |
+
+#### Surface（表面色）
+
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `.background` | `#FFFFFF` | `#000000` | 页面背景 |
+| `.card` | `#FFFFFF` | `#1C1C1E` | 卡片 / 浮层背景 |
+| `.cardForeground` | `#1D1D1F` | `#F5F5F7` | 卡片上的文字 |
+| `.secondary` | `#F5F5F7` | `#2C2C2E` | 分组 / 次要背景 |
+| `.secondaryForeground` | `#1D1D1F` | `#F5F5F7` | 次要背景上的文字 |
+| `.muted` | `#F5F5F7` | `#2C2C2E` | 三级背景 |
+
+#### Text（文字色）
+
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `.foreground` | `#1D1D1F` | `#F5F5F7` | 正文 / 主要文字 |
+| `.secondaryLabel` | `#86868B` | `#86868B` | 说明文字 |
+| `.tertiaryLabel` | `#3C3C43` × 30% | `#EBEBF5` × 30% | 占位符 / 禁用文字 |
+| `.quaternaryLabel` | `#3C3C43` × 18% | `#EBEBF5` × 18% | 最淡文字 |
+
+#### Divider（分隔色）
+
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `.separator` | `#3C3C43` × 20% | `#545458` × 20% | 分割线（半透明细线） |
+| `.border` | `#E5E5E7` | `#2C2C2E` | 边框（实色） |
+| `.input` | `#F5F5F7` | `#1C1C1E` | 输入框背景 |
+
+#### Semantic（语义色）
+
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `.success` | `#34C759` | `#30D158` | 成功 / 正向 |
+| `.successSoft` | `#34C759` × 12% | `#30D158` × 15% | 成功色软背景 |
+| `.warning` | `#FF9500` | `#FF9F0A` | 警告 / 注意 |
+| `.warningSoft` | `#FF9500` × 12% | `#FF9F0A` × 15% | 警告色软背景 |
+| `.destructive` | `#FF3B30` | `#FF453A` | 错误 / 危险 |
+| `.dangerSoft` | `#FF3B30` × 12% | `#FF453A` × 15% | 危险色软背景 |
+| `.hot` | `#FF7A00` | `#FF7A00` | 热门 / 趋势 |
+
+> `context.mc.mutedForeground` 作为 `secondaryLabel` 的语义别名仍可用，推荐迁移到 `.secondaryLabel`。
 
 ### 字体 `context.mc.textXxx`
 
-| Token | 字号 | 字重 | 用途 |
-|------|------|------|------|
-| `.textHero` | 32 | w800 | 大标题 |
-| `.textTitle` | 24 | w700 | 页面标题 |
-| `.textSection` | 18 | w700 | 区块标题 |
-| `.textBody` | 16 | normal | 正文 |
-| `.textMuted` | 14 | normal | 说明文字 |
-| `.textLabel` | 12 | w600 | 标签 / 徽章 |
+| Token | 字号 | 字重 | 行高 | 用途 |
+|------|------|------|------|------|
+| `.textHero` | 32 | w800 | 1.2 | 大标题 |
+| `.textTitle` | 24 | w700 | 1.25 | 页面标题 |
+| `.textSection` | 18 | w700 | 1.3 | 区块标题 |
+| `.textBody` | 16 | normal | 1.5 | 正文 |
+| `.textMuted` | 14 | normal | 1.4 | 说明文字 |
+| `.textLabel` | 12 | w600 | - | 标签 / 徽章 |
+
+> 也提供静态方法 `McTextStyles.hero(context)`、`McTextStyles.body(context)` 等。
 
 ### 圆角 `context.mc.radiusXxx`
 
@@ -237,20 +310,33 @@ final r    = context.mc.radiusLg;    // 16
 | `.radiusXxl` | 32 | 大面积表面 |
 | `.radiusPill` | 999 | 徽章、chip |
 
+> 也提供静态常量 `McRadii.sm`、`McRadii.lg` 等。
+
+### 阴影 `context.mc.shadowXxx`
+
+| Token | 说明 |
+|-------|------|
+| `.shadowCard` | 默认卡片阴影 — 柔和模糊，微弱偏移 |
+| `.shadowNone` | 无阴影（空列表） |
+
 ### 装饰 `context.mc.xxxDecoration()`
 
 | 方法 | 说明 |
 |------|------|
 | `.cardDecoration()` | 标准卡片背景 + 细边框 |
-| `.mutedDecoration()` | 次要背景 |
+| `.mutedDecoration()` | 次要背景（无边框） |
 | `.glassDecoration()` | 毛玻璃表面 |
 | `.pillDecoration()` | 药丸形容器 |
+
+> 也提供静态方法 `McDecorations.card(context)`、`McDecorations.glass(context)` 等。
 
 ---
 
 ## 主题切换
 
-直接使用 Flutter 原生的 `CupertinoApp.themeMode`，`context.mc` 自动跟随。
+直接使用 Flutter 原生的 `CupertinoApp.themeMode` 或 `MaterialApp.themeMode`，`context.mc` 自动跟随。
+
+### Cupertino 方式
 
 ```dart
 class MyApp extends StatefulWidget { ... }
@@ -262,6 +348,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return CupertinoApp(
       themeMode: _mode,
+      builder: (context, child) => McThemeData.wrap(child: child!),
       home: CupertinoButton(
         onPressed: () {
           setState(() {
@@ -272,6 +359,24 @@ class _MyAppState extends State<MyApp> {
             ? CupertinoIcons.moon_fill
             : CupertinoIcons.sun_max_fill),
       ),
+    );
+  }
+}
+```
+
+### Material 方式
+
+```dart
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      themeMode: ThemeMode.system, // 或 ThemeMode.dark / ThemeMode.light
+      theme: McThemeData.materialTheme(McColors.light),
+      darkTheme: McThemeData.materialTheme(McColors.dark),
+      home: const MyHomePage(),
     );
   }
 }
