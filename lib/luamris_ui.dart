@@ -9,10 +9,12 @@ export 'src/theme/mc_context.dart';
 export 'src/theme/mc_theme.dart';
 
 // Widgets
+export 'src/widgets/mc_app_bar.dart';
 export 'src/widgets/mc_page_scaffold.dart';
 export 'src/widgets/mc_button.dart';
 export 'src/widgets/mc_card.dart';
 export 'src/widgets/mc_list_tile.dart';
+export 'src/widgets/mc_menu.dart';
 export 'src/widgets/mc_badge.dart';
 export 'src/widgets/mc_stat_chip.dart';
 export 'src/widgets/mc_empty.dart';

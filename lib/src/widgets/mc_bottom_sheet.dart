@@ -16,6 +16,8 @@ Future<T?> showMcBottomSheet<T>({
   required WidgetBuilder builder,
   double? maxHeight,
   bool showHandle = false,
+  EdgeInsetsGeometry? contentPadding,
+  bool scrollable = false,
 }) {
   return showCupertinoModalPopup<T>(
     context: context,
@@ -30,6 +32,16 @@ Future<T?> showMcBottomSheet<T>({
         color: m.border.withValues(alpha: 0.35),
         width: 0.5,
       );
+
+      Widget sheetContent = builder(sheetContext);
+      if (scrollable) {
+        sheetContent = SingleChildScrollView(
+          padding: contentPadding ?? EdgeInsets.zero,
+          child: sheetContent,
+        );
+      } else if (contentPadding != null) {
+        sheetContent = Padding(padding: contentPadding, child: sheetContent);
+      }
 
       final content = showHandle
           ? Column(
@@ -49,10 +61,10 @@ Future<T?> showMcBottomSheet<T>({
                   ),
                 ),
                 const SizedBox(height: 8),
-                builder(sheetContext),
+                sheetContent,
               ],
             )
-          : builder(sheetContext);
+          : sheetContent;
 
       Widget surface = McSmoothCorners.clip(
         borderRadius: borderRadius,

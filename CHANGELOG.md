@@ -16,7 +16,13 @@
   - `showMcConfirmDialog` — 增强确认框
   - `showMcInputDialog` — 输入框对话框（返回值 `String?`）
   - `McDialogAction<T>`
-- `showMcBottomSheet` 新增 `maxHeight` 与 `showHandle` 参数。
+- **`McAppBar`**：Material `AppBar` 包装，支持自动返回按钮、`titleWidget` 与 `bottom`。
+- **`McMenu` / `McMenuItem`**：玻璃风格弹出菜单，支持禁用项与危险操作色。
+- **`context.mc.colors`**：直接访问原始 `McColors` token；兜底值现在按当前亮度解析。
+- **主题参数**：`McThemeData.materialTheme` 与 `wrap` 新增 `fontFamily`、`locale`；`de` / `ru` 语言自动将文字缩小 0.92。
+- **主题对齐**：补齐 `textTheme` 颜色、`textButtonTheme`、`iconTheme`、`tabBarTheme`、`dialogTheme` 标题/正文样式、`snackBarTheme` 字号 / `elevation: 0` / 平滑圆角。
+- `showMcBottomSheet` 新增 `maxHeight`、`showHandle`、`contentPadding` 与 `scrollable` 参数。
+- `McCard` 四个命名构造函数新增 `margin`。
 - `McField.text` / `McField.password` 新增 `autofocus`。
 - `McPageScaffold` 新增 `backgroundColor`。
 
@@ -30,6 +36,8 @@
 - **页面背景**：`McPageScaffold` 与 `MaterialApp` 的 scaffold 背景改为 `groupedBackground`（浅色 `#F8F8F8`）。
 - **底层弹窗**：`showMcBottomSheet` 顶部圆角从 24 改为 18，使用平滑圆角。
 - **主题**：`McThemeData.materialTheme` 的 Card / BottomSheet / Input 形状与 ColorScheme 同步更新；`McThemeData.wrap` 支持显式 `colors:`，并优先从 `CupertinoTheme` 解析亮度。
+- **依赖约束**：`cupertino_ui` 收紧为 `^1.1.3`，`material_ui` 收紧为 `^1.7.0`。
+- **仓库地址**：`homepage` / `repository` 改为 `LumarisTeam/luamris_ui`。
 - **非圆形头像**：使用平滑圆角裁剪。
 
 ### Deprecated

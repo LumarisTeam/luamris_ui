@@ -45,6 +45,89 @@ void main() {
     expect(border.borderRadius, BorderRadius.circular(McRadii.navigation));
   });
 
+  test('fontFamily is applied to the text theme', () {
+    final theme = McThemeData.materialTheme(
+      McColors.light,
+      fontFamily: 'Courier',
+    );
+    expect(theme.textTheme.bodyMedium?.fontFamily, 'Courier');
+  });
+
+  test('long-text locales shrink the text theme', () {
+    final en = McThemeData.materialTheme(
+      McColors.light,
+      locale: const Locale('en'),
+    );
+    final de = McThemeData.materialTheme(
+      McColors.light,
+      locale: const Locale('de'),
+    );
+    // Non-shrink locales keep the unlocalized color theme (no font sizes);
+    // shrink locales carry explicit, scaled geometry.
+    expect(en.textTheme.bodyMedium?.fontSize, isNull);
+    expect(de.textTheme.bodyMedium!.fontSize!, closeTo(14 * 0.92, 0.01));
+  });
+
+  test('tab bar theme follows the iOS palette', () {
+    final tabBar = McThemeData.materialTheme(McColors.light).tabBarTheme;
+    expect(tabBar.labelColor, McColors.light.primary);
+    expect(tabBar.unselectedLabelColor, McColors.light.secondaryLabel);
+    expect(tabBar.dividerColor, Colors.transparent);
+  });
+
+  test('dialog text styles follow the iOS palette', () {
+    final dialog = McThemeData.materialTheme(McColors.dark).dialogTheme;
+    expect(dialog.titleTextStyle?.color, McColors.dark.foreground);
+    expect(dialog.contentTextStyle?.color, McColors.dark.secondaryLabel);
+  });
+
+  test('snack bar is flat with a smooth card shape', () {
+    final snackBar = McThemeData.materialTheme(McColors.light).snackBarTheme;
+    expect(snackBar.elevation, 0);
+    expect(snackBar.contentTextStyle?.fontSize, 14);
+    expect(snackBar.shape, isA<SmoothRectangleBorder>());
+    expect(
+      (snackBar.shape as SmoothRectangleBorder).borderRadius,
+      McRadii.cardBorder,
+    );
+  });
+
+  testWidgets('context.mc.colors falls back to dark tokens', (tester) async {
+    late McColors colors;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(brightness: Brightness.dark),
+        home: Builder(
+          builder: (context) {
+            colors = context.mc.colors;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    expect(colors, same(McColors.dark));
+  });
+
+  testWidgets('wrap forwards fontFamily and locale', (tester) async {
+    ThemeData? captured;
+    await tester.pumpWidget(
+      McThemeData.wrap(
+        fontFamily: 'Courier',
+        locale: const Locale('ru'),
+        child: Builder(
+          builder: (context) {
+            captured = Theme.of(context);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    expect(captured!.textTheme.bodyMedium?.fontFamily, 'Courier');
+    expect(captured!.textTheme.bodyMedium!.fontSize, closeTo(14 * 0.92, 0.01));
+  });
+
   testWidgets('wrap honours an explicit color scheme', (tester) async {
     ThemeData? captured;
     await tester.pumpWidget(

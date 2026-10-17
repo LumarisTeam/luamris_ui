@@ -28,6 +28,7 @@ class McCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onPressed;
   final EdgeInsets? padding;
+  final EdgeInsets? margin;
   final double? radius;
 
   /// Glass-morphism card with backdrop blur.
@@ -36,6 +37,7 @@ class McCard extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.padding = const EdgeInsets.all(18),
+    this.margin,
     this.radius,
   }) : _variant = _McCardVariant.glass;
 
@@ -45,6 +47,7 @@ class McCard extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.padding = const EdgeInsets.all(18),
+    this.margin,
     this.radius,
   }) : _variant = _McCardVariant.elevated;
 
@@ -54,6 +57,7 @@ class McCard extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.padding = const EdgeInsets.all(18),
+    this.margin,
     this.radius,
   }) : _variant = _McCardVariant.flat;
 
@@ -65,6 +69,7 @@ class McCard extends StatelessWidget {
     super.key,
     required this.child,
     this.onPressed,
+    this.margin,
     this.radius,
   }) : padding = EdgeInsets.zero,
        _variant = _McCardVariant.grouped;
@@ -133,15 +138,17 @@ class McCard extends StatelessWidget {
     }
 
     final sized = SizedBox(width: double.infinity, child: card);
-    if (onPressed == null) return sized;
+    final Widget result = onPressed == null
+        ? sized
+        : CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            pressedOpacity: 0.92,
+            foregroundColor: m.cardForeground,
+            onPressed: onPressed,
+            child: sized,
+          );
 
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      minimumSize: Size.zero,
-      pressedOpacity: 0.92,
-      foregroundColor: m.cardForeground,
-      onPressed: onPressed,
-      child: sized,
-    );
+    return margin == null ? result : Padding(padding: margin!, child: result);
   }
 }

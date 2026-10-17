@@ -13,7 +13,7 @@
 dependencies:
   luamris_ui:
     git:
-      url: https://github.com/YoChine-Lanee/luamris_ui
+      url: https://github.com/LumarisTeam/luamris_ui
       ref: v0.3.0
 ```
 

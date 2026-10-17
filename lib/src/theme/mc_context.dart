@@ -31,8 +31,17 @@ class McTheme {
   final BuildContext _context;
   const McTheme._(this._context);
 
-  McColors get _colors =>
-      Theme.of(_context).extension<McColors>() ?? McColors.light;
+  McColors get _colors {
+    final theme = Theme.of(_context);
+    return theme.extension<McColors>() ??
+        (theme.brightness == Brightness.dark ? McColors.dark : McColors.light);
+  }
+
+  /// Raw token set.
+  ///
+  /// Drop-in replacement for callers migrating from a `context.clubColors`
+  /// style API: values follow the ambient brightness automatically.
+  McColors get colors => _colors;
 
   /// Current resolved brightness.
   Brightness get brightness => _colors.brightness;
