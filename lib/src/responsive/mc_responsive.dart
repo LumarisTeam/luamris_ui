@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 /// Responsive breakpoints used by [McResponsive].
 abstract final class McBreakpoints {

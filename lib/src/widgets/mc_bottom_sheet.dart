@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../responsive/mc_responsive.dart';
 import '../theme/mc_context.dart';

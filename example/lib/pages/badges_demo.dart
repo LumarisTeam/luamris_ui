@@ -1,4 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/widgets.dart';
 import 'package:luamris_ui/luamris_ui.dart';
 
 class BadgesDemo extends StatelessWidget {

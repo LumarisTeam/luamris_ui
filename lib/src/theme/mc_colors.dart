@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Apple-style semantic color tokens with built-in light/dark mode support
 /// via [ThemeExtension].
