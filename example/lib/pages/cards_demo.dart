@@ -40,10 +40,7 @@ class CardsDemo extends StatelessWidget {
               children: [
                 Text('可点击卡片', style: m.textSection),
                 const SizedBox(height: 4),
-                Text(
-                  '带有边框和阴影，设置 onPressed 即可响应点击。',
-                  style: m.textMuted,
-                ),
+                Text('带有边框和阴影，设置 onPressed 即可响应点击。', style: m.textMuted),
               ],
             ),
           ),
@@ -58,10 +55,47 @@ class CardsDemo extends StatelessWidget {
               children: [
                 Text('扁平卡片', style: m.textSection),
                 const SizedBox(height: 4),
-                Text(
-                  '仅有边框无阴影，同样支持 onPressed 点击。',
-                  style: m.textMuted,
+                Text('仅有边框无阴影，同样支持 onPressed 点击。', style: m.textMuted),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+          _sectionTitle('Grouped 分组卡片', m),
+          const SizedBox(height: 10),
+          McCard.grouped(
+            child: Column(
+              children: [
+                McListTile(
+                  title: const Text('分组行一'),
+                  subtitle: const Text('零内边距，由列表行自己控制'),
+                  showChevron: true,
+                  onTap: () => _showTapFeedback(context, '点击了分组行一'),
                 ),
+                Container(
+                  height: 0.5,
+                  color: m.separator.withValues(alpha: 0.5),
+                ),
+                McListTile(
+                  title: const Text('分组行二'),
+                  showChevron: true,
+                  onTap: () => _showTapFeedback(context, '点击了分组行二'),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+          _sectionTitle('Tile 大图块（22 圆角）', m),
+          const SizedBox(height: 10),
+          McCard.elevated(
+            radius: McRadii.tile,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('仪表盘图块', style: m.textSection),
+                const SizedBox(height: 4),
+                Text('使用 McRadii.tile 的 22px 平滑圆角。', style: m.textMuted),
               ],
             ),
           ),

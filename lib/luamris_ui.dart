@@ -2,6 +2,7 @@
 export 'src/theme/mc_colors.dart';
 export 'src/theme/mc_radii.dart';
 export 'src/theme/mc_shadows.dart';
+export 'src/theme/mc_smooth_corners.dart';
 export 'src/theme/mc_text_styles.dart';
 export 'src/theme/mc_decorations.dart';
 export 'src/theme/mc_context.dart';
@@ -27,6 +28,7 @@ export 'src/responsive/mc_responsive_sliver_padding.dart';
 export 'src/responsive/mc_two_pane.dart';
 
 // Feedback
+export 'src/feedback/mc_dialog.dart';
 export 'src/feedback/mc_feedback.dart';
 
 // Utils

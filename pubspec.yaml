@@ -1,6 +1,6 @@
 name: luamris_ui
 description: LuamrisTeam Flutter UI kit — Apple-style Cupertino components for campus apps.
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/YoChine-Lanee/luamris_ui
 
 environment:
@@ -13,6 +13,7 @@ dependencies:
 
   cupertino_ui: any
   material_ui: any
+  smooth_corner: ^1.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

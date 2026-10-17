@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../theme/mc_context.dart';
 import '../theme/mc_radii.dart';
+import '../theme/mc_smooth_corners.dart';
 
 /// A circular (or rounded-square) avatar that accepts any [ImageProvider],
 /// with automatic initial-based fallback.
@@ -59,25 +60,38 @@ class McAvatar extends StatelessWidget {
           if (loadingProgress == null) return child;
           return Container(
             color: resolvedBg,
-            child:
-                const Center(child: CupertinoActivityIndicator(radius: 8)),
+            child: const Center(child: CupertinoActivityIndicator(radius: 8)),
           );
         },
-        errorBuilder: (context, error, stackTrace) =>
-            _buildFallback(context),
+        errorBuilder: (context, error, stackTrace) => _buildFallback(context),
       );
     }
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
+    final content = image != null ? imageWidget : _buildFallback(context);
+
+    if (isCircle) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: resolvedBg,
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        clipBehavior: Clip.antiAlias,
+        alignment: Alignment.center,
+        child: content,
+      );
+    }
+
+    return McSmoothCorners.clip(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: Container(
+        width: size,
+        height: size,
         color: resolvedBg,
-        borderRadius: BorderRadius.circular(borderRadius),
+        alignment: Alignment.center,
+        child: content,
       ),
-      clipBehavior: Clip.antiAlias,
-      alignment: Alignment.center,
-      child: image != null ? imageWidget : _buildFallback(context),
     );
   }
 

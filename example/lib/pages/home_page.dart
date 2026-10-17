@@ -9,6 +9,7 @@ import 'avatars_demo.dart';
 import 'fields_demo.dart';
 import 'empty_demo.dart';
 import 'bottom_sheet_demo.dart';
+import 'dialogs_demo.dart';
 import 'responsive_demo.dart';
 
 class HomePage extends StatelessWidget {
@@ -21,64 +22,72 @@ class HomePage extends StatelessWidget {
     return McPageScaffold(
       title: 'Luamris UI',
       navigationBarStyle: McNavigationBarStyle.large,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionCard(
-            icon: CupertinoIcons.circle_grid_3x3_fill,
-            title: '按钮 McButton',
-            subtitle: 'primary · secondary · ghost · danger',
-            onTap: () => _navigate(context, const ButtonsDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.square_on_square,
-            title: '卡片 McCard',
-            subtitle: 'glass · elevated · flat',
-            onTap: () => _navigate(context, const CardsDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.list_bullet,
-            title: '列表 McListTile',
-            subtitle: 'leading · title · subtitle · trailing',
-            onTap: () => _navigate(context, const ListTilesDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.tag_fill,
-            title: '标签 & 统计',
-            subtitle: 'McBadge · McStatChip',
-            onTap: () => _navigate(context, const BadgesDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.person_crop_circle_fill,
-            title: '头像 McAvatar',
-            subtitle: 'network · SVG · initials fallback',
-            onTap: () => _navigate(context, const AvatarsDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.pencil,
-            title: '表单 McField',
-            subtitle: 'text · password · validation',
-            onTap: () => _navigate(context, const FieldsDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.tray,
-            title: '空状态 McEmpty',
-            subtitle: 'placeholder · retry',
-            onTap: () => _navigate(context, const EmptyDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.rectangle_stack,
-            title: '弹出层 & 反馈',
-            subtitle: 'BottomSheet · Toast · Confirm',
-            onTap: () => _navigate(context, const BottomSheetDemo()),
-          ),
-          _SectionCard(
-            icon: CupertinoIcons.square_grid_2x2,
-            title: '响应式布局',
-            subtitle: 'McResponsive · McTwoPane',
-            onTap: () => _navigate(context, const ResponsiveDemo()),
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionCard(
+              icon: CupertinoIcons.circle_grid_3x3_fill,
+              title: '按钮 McButton',
+              subtitle: 'primary · secondary · ghost · danger',
+              onTap: () => _navigate(context, const ButtonsDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.square_on_square,
+              title: '卡片 McCard',
+              subtitle: 'glass · elevated · flat',
+              onTap: () => _navigate(context, const CardsDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.list_bullet,
+              title: '列表 McListTile',
+              subtitle: 'leading · title · subtitle · trailing',
+              onTap: () => _navigate(context, const ListTilesDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.tag_fill,
+              title: '标签 & 统计',
+              subtitle: 'McBadge · McStatChip',
+              onTap: () => _navigate(context, const BadgesDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.person_crop_circle_fill,
+              title: '头像 McAvatar',
+              subtitle: 'network · SVG · initials fallback',
+              onTap: () => _navigate(context, const AvatarsDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.pencil,
+              title: '表单 McField',
+              subtitle: 'text · password · validation',
+              onTap: () => _navigate(context, const FieldsDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.tray,
+              title: '空状态 McEmpty',
+              subtitle: 'placeholder · retry',
+              onTap: () => _navigate(context, const EmptyDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.rectangle_stack,
+              title: '弹出层 & 反馈',
+              subtitle: 'BottomSheet · Toast · Confirm',
+              onTap: () => _navigate(context, const BottomSheetDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.exclamationmark_bubble,
+              title: '对话框',
+              subtitle: 'Confirm · Input · Multi-action',
+              onTap: () => _navigate(context, const DialogsDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.square_grid_2x2,
+              title: '响应式布局',
+              subtitle: 'McResponsive · McTwoPane',
+              onTap: () => _navigate(context, const ResponsiveDemo()),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -116,7 +125,7 @@ class _SectionCard extends StatelessWidget {
               height: 42,
               decoration: BoxDecoration(
                 color: m.primarySoft,
-                borderRadius: BorderRadius.circular(m.radiusMd),
+                borderRadius: BorderRadius.circular(m.radiusControl),
               ),
               child: Icon(icon, color: m.primary, size: 22),
             ),
@@ -131,7 +140,11 @@ class _SectionCard extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(CupertinoIcons.chevron_right, color: m.mutedForeground, size: 18),
+            Icon(
+              CupertinoIcons.chevron_right,
+              color: m.mutedForeground,
+              size: 18,
+            ),
           ],
         ),
       ),

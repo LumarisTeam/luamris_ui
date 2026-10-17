@@ -10,5 +10,6 @@ void main() {
     expect(find.text('Luamris UI'), findsOneWidget);
     expect(find.text('按钮 McButton'), findsOneWidget);
     expect(find.text('卡片 McCard'), findsOneWidget);
+    expect(find.text('对话框'), findsOneWidget);
   });
 }

@@ -19,6 +19,7 @@ class McPageScaffold extends StatelessWidget {
     this.alwaysShowMiddle = true,
     this.transitionBetweenRoutes = true,
     this.bottomBar,
+    this.backgroundColor,
     this.maxContentWidth,
     this.padding,
     this.scrollController,
@@ -45,6 +46,10 @@ class McPageScaffold extends StatelessWidget {
   final bool alwaysShowMiddle;
   final bool transitionBetweenRoutes;
   final Widget? bottomBar;
+
+  /// Page background. Defaults to [McColors.groupedBackground].
+  final Color? backgroundColor;
+
   final double? maxContentWidth;
   final EdgeInsets? padding;
   final ScrollController? scrollController;
@@ -61,11 +66,13 @@ class McPageScaffold extends StatelessWidget {
     final contentMaxWidth =
         maxContentWidth ?? McResponsive.contentMaxWidth(context);
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final bg = backgroundColor ?? m.groupedBackground;
 
     return CupertinoPageScaffold(
-      backgroundColor: m.background,
-      resizeToAvoidBottomInset:
-          bottomBar == null ? resizeToAvoidBottomInset : false,
+      backgroundColor: bg,
+      resizeToAvoidBottomInset: bottomBar == null
+          ? resizeToAvoidBottomInset
+          : false,
       child: Stack(
         children: [
           CustomScrollView(
@@ -87,24 +94,23 @@ class McPageScaffold extends StatelessWidget {
                     previousPageTitle: previousPageTitle,
                     alwaysShowMiddle: alwaysShowMiddle,
                     transitionBetweenRoutes: transitionBetweenRoutes,
-                    backgroundColor: m.background.withValues(alpha: 0.94),
+                    backgroundColor: bg.withValues(alpha: 0.94),
                     border: Border(
                       bottom: BorderSide(
                         color: m.border.withValues(alpha: 0.35),
                       ),
                     ),
                     automaticallyImplyLeading: leading == null,
-                    padding:
-                        const EdgeInsetsDirectional.only(start: 8, end: 8),
+                    padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
                   ),
-                  McNavigationBarStyle.compact =>
-                    _McCompactNavigationBarSliver(
-                      title: title!,
-                      leading: leading,
-                      trailing: trailing,
-                      previousPageTitle: previousPageTitle,
-                      transitionBetweenRoutes: transitionBetweenRoutes,
-                    ),
+                  McNavigationBarStyle.compact => _McCompactNavigationBarSliver(
+                    title: title!,
+                    leading: leading,
+                    trailing: trailing,
+                    previousPageTitle: previousPageTitle,
+                    transitionBetweenRoutes: transitionBetweenRoutes,
+                    backgroundColor: bg,
+                  ),
                 },
               if (slivers != null)
                 ...slivers!
@@ -130,9 +136,7 @@ class McPageScaffold extends StatelessWidget {
                   ),
                 ),
               if (slivers != null && bottomBar != null)
-                SliverToBoxAdapter(
-                  child: SizedBox(height: 120 + bottomInset),
-                ),
+                SliverToBoxAdapter(child: SizedBox(height: 120 + bottomInset)),
             ],
           ),
           if (bottomBar != null)
@@ -172,6 +176,7 @@ class _McCompactNavigationBarSliver extends StatelessWidget {
     this.trailing,
     this.previousPageTitle,
     required this.transitionBetweenRoutes,
+    required this.backgroundColor,
   });
 
   final String title;
@@ -179,6 +184,7 @@ class _McCompactNavigationBarSliver extends StatelessWidget {
   final Widget? trailing;
   final String? previousPageTitle;
   final bool transitionBetweenRoutes;
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -186,21 +192,16 @@ class _McCompactNavigationBarSliver extends StatelessWidget {
     final navigationBar = CupertinoNavigationBar(
       middle: Text(
         title,
-        style: TextStyle(
-          color: m.foreground,
-          fontWeight: FontWeight.w700,
-        ),
+        style: TextStyle(color: m.foreground, fontWeight: FontWeight.w700),
       ),
       leading: leading,
       trailing: trailing,
       previousPageTitle: previousPageTitle,
       automaticallyImplyLeading: leading == null,
       transitionBetweenRoutes: transitionBetweenRoutes,
-      backgroundColor: m.background.withValues(alpha: 0.94),
+      backgroundColor: backgroundColor.withValues(alpha: 0.94),
       border: Border(
-        bottom: BorderSide(
-          color: m.border.withValues(alpha: 0.35),
-        ),
+        bottom: BorderSide(color: m.border.withValues(alpha: 0.35)),
       ),
       padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
     );
@@ -233,7 +234,11 @@ class _McCompactNavigationBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return navigationBar;
   }
 

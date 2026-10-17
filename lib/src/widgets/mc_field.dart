@@ -2,6 +2,8 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/mc_context.dart';
+import '../theme/mc_radii.dart';
+import '../theme/mc_smooth_corners.dart';
 
 // =============================================================================
 // McField — unified text / password field
@@ -33,6 +35,7 @@ class McField extends StatefulWidget {
   final Widget? suffix;
   final bool obscureText;
   final int? maxLength;
+  final bool autofocus;
 
   /// Text input field with validation.
   const McField.text({
@@ -49,6 +52,7 @@ class McField extends StatefulWidget {
     this.suffix,
     this.obscureText = false,
     this.maxLength,
+    this.autofocus = false,
   }) : _variant = _McFieldVariant.text;
 
   /// Password field with built-in visibility toggle.
@@ -59,6 +63,7 @@ class McField extends StatefulWidget {
     this.validator,
     this.textInputAction,
     this.onFieldSubmitted,
+    this.autofocus = false,
   }) : _variant = _McFieldVariant.password,
        keyboardType = null,
        onChanged = null,
@@ -101,9 +106,7 @@ class _McFieldState extends State<McField> {
       validator: widget.validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       builder: (field) {
-        final borderColor = field.hasError
-            ? m.destructive
-            : m.input.withValues(alpha: 0.55);
+        final borderColor = field.hasError ? m.destructive : m.border;
 
         // Build the visibility toggle for password fields.
         Widget? suffixWidget = widget.suffix;
@@ -123,11 +126,13 @@ class _McFieldState extends State<McField> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: m.secondary.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(m.radiusLg),
-                border: Border.all(color: borderColor),
+            DecoratedBox(
+              decoration: ShapeDecoration(
+                color: m.input,
+                shape: McSmoothCorners.shape(
+                  BorderRadius.circular(McRadii.navigation),
+                  side: BorderSide(color: borderColor),
+                ),
               ),
               child: CupertinoTextField(
                 controller: _controller,
@@ -135,6 +140,7 @@ class _McFieldState extends State<McField> {
                 keyboardType: widget.keyboardType,
                 textInputAction: widget.textInputAction,
                 maxLines: widget.maxLines,
+                autofocus: widget.autofocus,
                 obscureText: isPassword ? _obscured : widget.obscureText,
                 inputFormatters: widget.maxLength == null
                     ? null

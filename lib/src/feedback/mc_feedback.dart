@@ -3,8 +3,12 @@ import 'dart:ui';
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../theme/mc_context.dart';
+import 'mc_dialog.dart';
 
 /// Toast and dialog feedback utilities.
+///
+/// Dialog capabilities live in `mc_dialog.dart` (`showMcDialog`,
+/// `showMcConfirmDialog`, `showMcInputDialog`).
 abstract final class McFeedback {
   /// Show an informational toast (alias for [showInfo]).
   static Future<void> showMessage(
@@ -71,25 +75,16 @@ abstract final class McFeedback {
     String cancelText = '',
     String confirmText = '',
     bool destructive = false,
+    bool barrierDismissible = false,
   }) {
-    return showCupertinoDialog<bool>(
+    return showMcConfirmDialog(
       context: context,
-      builder: (context) => _McFeedbackDialog(
-        title: title,
-        message: message,
-        actions: [
-          _McFeedbackAction(
-            label: cancelText,
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          _McFeedbackAction(
-            label: confirmText,
-            onPressed: () => Navigator.of(context).pop(true),
-            isPrimary: !destructive,
-            isDestructive: destructive,
-          ),
-        ],
-      ),
+      title: title.isEmpty ? null : title,
+      message: message,
+      cancelText: cancelText,
+      confirmText: confirmText,
+      destructive: destructive,
+      barrierDismissible: barrierDismissible,
     );
   }
 
@@ -207,116 +202,6 @@ class _McFeedbackToast extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _McFeedbackDialog extends StatelessWidget {
-  const _McFeedbackDialog({
-    required this.title,
-    required this.message,
-    required this.actions,
-  });
-
-  final String title;
-  final String message;
-  final List<Widget> actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final m = context.mc;
-
-    return SafeArea(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: CupertinoPopupSurface(
-            isSurfacePainted: false,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(m.radiusXl),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: Container(
-                  width: 320,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: m.background.withValues(alpha: 0.98),
-                    borderRadius: BorderRadius.circular(m.radiusXl),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        title,
-                        style: m.textSection,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        message,
-                        style: m.textMuted,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 18),
-                      Row(
-                        children: [
-                          for (final (index, action) in actions.indexed) ...[
-                            if (index > 0) const SizedBox(width: 10),
-                            Expanded(child: action),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _McFeedbackAction extends StatelessWidget {
-  const _McFeedbackAction({
-    required this.label,
-    required this.onPressed,
-    this.isPrimary = false,
-    this.isDestructive = false,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-  final bool isPrimary;
-  final bool isDestructive;
-
-  @override
-  Widget build(BuildContext context) {
-    final m = context.mc;
-    final backgroundColor = isDestructive
-        ? m.dangerSoft
-        : isPrimary
-            ? m.primary
-            : m.secondary;
-    final foregroundColor = isDestructive
-        ? m.destructive
-        : isPrimary
-            ? m.primaryForeground
-            : m.foreground;
-
-    return CupertinoButton(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      borderRadius: BorderRadius.circular(m.radiusLg),
-      color: backgroundColor,
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foregroundColor,
-          fontWeight: FontWeight.w700,
         ),
       ),
     );

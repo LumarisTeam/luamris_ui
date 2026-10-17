@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 
 import 'mc_colors.dart';
 import 'mc_radii.dart';
 import 'mc_shadows.dart';
+import 'mc_smooth_corners.dart';
 
 // =============================================================================
 // One-stop theme access: context.mc
@@ -32,24 +34,34 @@ class McTheme {
   McColors get _colors =>
       Theme.of(_context).extension<McColors>() ?? McColors.light;
 
+  /// Current resolved brightness.
+  Brightness get brightness => _colors.brightness;
+
   // ── Colors ────────────────────────────────────────────────────────────────
 
   Color get primary => _colors.primary;
   Color get primarySoft => _colors.primarySoft;
   Color get primaryForeground => _colors.primaryForeground;
   Color get background => _colors.background;
+  Color get groupedBackground => _colors.groupedBackground;
   Color get foreground => _colors.foreground;
   Color get secondaryLabel => _colors.secondaryLabel;
   Color get tertiaryLabel => _colors.tertiaryLabel;
   Color get quaternaryLabel => _colors.quaternaryLabel;
+  Color get inverseLabel => _colors.inverseLabel;
   Color get card => _colors.card;
+  Color get cardOverlay => _colors.cardOverlay;
   Color get cardForeground => _colors.cardForeground;
   Color get secondary => _colors.secondary;
   Color get secondaryForeground => _colors.secondaryForeground;
   Color get muted => _colors.muted;
   Color get mutedForeground => _colors.secondaryLabel; // legacy alias
+  Color get surfaceRaised => _colors.surfaceRaised;
+  Color get surfaceMuted => _colors.surfaceMuted;
+  Color get surfaceSunken => _colors.surfaceSunken;
   Color get separator => _colors.separator;
   Color get border => _colors.border;
+  Color get borderStrong => _colors.borderStrong;
   Color get input => _colors.input;
   Color get success => _colors.success;
   Color get successSoft => _colors.successSoft;
@@ -57,71 +69,117 @@ class McTheme {
   Color get warningSoft => _colors.warningSoft;
   Color get destructive => _colors.destructive;
   Color get dangerSoft => _colors.dangerSoft;
+  Color get indigo => _colors.indigo;
+  Color get purple => _colors.purple;
+  Color get pink => _colors.pink;
+  Color get cyan => _colors.cyan;
+  Color get yellow => _colors.yellow;
+  Color get indigoSoft => _colors.indigoSoft;
+  Color get purpleSoft => _colors.purpleSoft;
+  Color get pinkSoft => _colors.pinkSoft;
+  Color get cyanSoft => _colors.cyanSoft;
+  Color get yellowSoft => _colors.yellowSoft;
+  Color get onAccent => _colors.onAccent;
+  Color get selectionFill => _colors.selectionFill;
+  Color get shadowColor => _colors.shadowColor;
+  Color get skeletonBase => _colors.skeletonBase;
+  Color get skeletonHighlight => _colors.skeletonHighlight;
   Color get hot => _colors.hot;
+
+  // iOS-style aliases
+  Color get appBackground => _colors.appBackground;
+  Color get cardBackground => _colors.cardBackground;
+  Color get label => _colors.label;
+  Color get danger => _colors.danger;
 
   // ── Text styles ───────────────────────────────────────────────────────────
 
   TextStyle get textHero => TextStyle(
-        fontSize: 32,
-        height: 1.2,
-        fontWeight: FontWeight.w800,
-        color: foreground,
-        letterSpacing: -0.5,
-      );
+    fontSize: 32,
+    height: 1.2,
+    fontWeight: FontWeight.w800,
+    color: foreground,
+    letterSpacing: -0.5,
+  );
 
   TextStyle get textTitle => TextStyle(
-        fontSize: 24,
-        height: 1.25,
-        fontWeight: FontWeight.w700,
-        color: foreground,
-        letterSpacing: -0.4,
-      );
+    fontSize: 24,
+    height: 1.25,
+    fontWeight: FontWeight.w700,
+    color: foreground,
+    letterSpacing: -0.4,
+  );
 
   TextStyle get textSection => TextStyle(
-        fontSize: 18,
-        height: 1.3,
-        fontWeight: FontWeight.w700,
-        color: foreground,
-        letterSpacing: -0.2,
-      );
+    fontSize: 18,
+    height: 1.3,
+    fontWeight: FontWeight.w700,
+    color: foreground,
+    letterSpacing: -0.2,
+  );
 
-  TextStyle get textBody => TextStyle(
-        fontSize: 16,
-        height: 1.5,
-        color: foreground,
-      );
+  TextStyle get textBody =>
+      TextStyle(fontSize: 16, height: 1.5, color: foreground);
 
-  TextStyle get textMuted => TextStyle(
-        fontSize: 14,
-        height: 1.4,
-        color: mutedForeground,
-      );
+  TextStyle get textMuted =>
+      TextStyle(fontSize: 14, height: 1.4, color: mutedForeground);
 
   TextStyle get textLabel => TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: mutedForeground,
-      );
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    color: mutedForeground,
+  );
 
   // ── Radii ─────────────────────────────────────────────────────────────────
 
+  double get radiusXs => McRadii.xs;
   double get radiusSm => McRadii.sm;
   double get radiusMd => McRadii.md;
   double get radiusLg => McRadii.lg;
   double get radiusXl => McRadii.xl;
   double get radiusXxl => McRadii.xxl;
   double get radiusPill => McRadii.pill;
+  double get radiusControl => McRadii.control;
+  double get radiusNavigation => McRadii.navigation;
+  double get radiusPanel => McRadii.panel;
+  double get radiusCard => McRadii.card;
+  double get radiusTile => McRadii.tile;
+  double get radiusSheetTop => McRadii.sheetTop;
+  double get radiusHandle => McRadii.handle;
+  double get radiusIndicator => McRadii.indicator;
 
   // ── Shadows ───────────────────────────────────────────────────────────────
 
   List<BoxShadow> get shadowCard => McShadows.card;
   List<BoxShadow> get shadowNone => McShadows.none;
 
+  /// Card shadow, only visible in light mode (matches the iOS apps).
+  List<BoxShadow> get cardShadow => brightness == Brightness.light
+      ? [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+            spreadRadius: -2,
+          ),
+        ]
+      : const [];
+
+  // ── Shapes ────────────────────────────────────────────────────────────────
+
+  /// Smooth-corner card shape with an optional border.
+  SmoothRectangleBorder cardShape({
+    double radius = McRadii.card,
+    BorderSide side = BorderSide.none,
+  }) {
+    return McSmoothCorners.shape(BorderRadius.circular(radius), side: side);
+  }
+
   // ── Decorations ───────────────────────────────────────────────────────────
 
   /// Standard card surface with a subtle border.
   BoxDecoration cardDecoration({double? radius}) {
-    final r = radius ?? McRadii.xl;
+    final r = radius ?? McRadii.card;
     return BoxDecoration(
       color: card,
       borderRadius: BorderRadius.circular(r),
@@ -131,7 +189,7 @@ class McTheme {
 
   /// Glass-morphism surface — semi-transparent + border.
   BoxDecoration glassDecoration({double? radius}) {
-    final r = radius ?? McRadii.xl;
+    final r = radius ?? McRadii.card;
     return BoxDecoration(
       color: card.withValues(alpha: 0.7),
       borderRadius: BorderRadius.circular(r),
@@ -141,7 +199,7 @@ class McTheme {
 
   /// Muted / secondary surface without a border.
   BoxDecoration mutedDecoration({double? radius}) {
-    final r = radius ?? McRadii.xl;
+    final r = radius ?? McRadii.panel;
     return BoxDecoration(
       color: secondary,
       borderRadius: BorderRadius.circular(r),

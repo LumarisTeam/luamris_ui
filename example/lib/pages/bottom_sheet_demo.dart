@@ -24,20 +24,27 @@ class BottomSheetDemo extends StatelessWidget {
           const SizedBox(height: 28),
           _sectionTitle('Toast 消息提示', m),
           const SizedBox(height: 10),
-          Wrap(spacing: 10, runSpacing: 10, children: [
-            McButton.secondary(
-              onPressed: () => McFeedback.showInfo(context, message: '这是一条信息提示'),
-              child: const Text('Info'),
-            ),
-            McButton.secondary(
-              onPressed: () => McFeedback.showSuccess(context, message: '操作成功！'),
-              child: const Text('Success'),
-            ),
-            McButton.secondary(
-              onPressed: () => McFeedback.showError(context, message: '操作失败，请重试'),
-              child: const Text('Error'),
-            ),
-          ]),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              McButton.secondary(
+                onPressed: () =>
+                    McFeedback.showInfo(context, message: '这是一条信息提示'),
+                child: const Text('Info'),
+              ),
+              McButton.secondary(
+                onPressed: () =>
+                    McFeedback.showSuccess(context, message: '操作成功！'),
+                child: const Text('Success'),
+              ),
+              McButton.secondary(
+                onPressed: () =>
+                    McFeedback.showError(context, message: '操作失败，请重试'),
+                child: const Text('Error'),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 28),
           _sectionTitle('Confirm 确认对话框', m),
@@ -66,21 +73,27 @@ class BottomSheetDemo extends StatelessWidget {
                 height: 5,
                 decoration: BoxDecoration(
                   color: m.mutedForeground.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(m.radiusPill),
+                  borderRadius: BorderRadius.circular(m.radiusHandle),
                 ),
               ),
               const SizedBox(height: 20),
               Text('分享到', style: m.textSection),
               const SizedBox(height: 16),
-              McCard.flat(
+              McCard.grouped(
                 child: Column(
                   children: [
                     McListTile(
-                      leading: Icon(CupertinoIcons.paperplane, color: m.primary),
+                      leading: Icon(
+                        CupertinoIcons.paperplane,
+                        color: m.primary,
+                      ),
                       title: const Text('发送给好友'),
                       onTap: () => Navigator.of(ctx).pop(),
                     ),
-                    Container(height: 1, color: m.border.withValues(alpha: 0.4)),
+                    Container(
+                      height: 0.5,
+                      color: m.separator.withValues(alpha: 0.5),
+                    ),
                     McListTile(
                       leading: Icon(CupertinoIcons.link, color: m.primary),
                       title: const Text('复制链接'),

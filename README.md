@@ -14,7 +14,7 @@ dependencies:
   luamris_ui:
     git:
       url: https://github.com/YoChine-Lanee/luamris_ui
-      ref: v0.2.0
+      ref: v0.3.0
 ```
 
 ```dart
@@ -152,7 +152,7 @@ final primary = context.mc.primary;      // Color，主色调
 
 | 组件 | 说明 |
 |------|------|
-| `McPageScaffold` | 全页脚手架，large / compact 导航栏，响应式居中，支持底部固定栏 |
+| `McPageScaffold` | 全页脚手架，large / compact 导航栏，响应式居中，支持底部固定栏；默认使用 `groupedBackground` 页面背景（可用 `backgroundColor:` 覆盖） |
 
 ### 按钮 — `McButton`
 
@@ -170,6 +170,7 @@ final primary = context.mc.primary;      // Color，主色调
 | `.glass(child:)` | 毛玻璃卡片，内置 `BackdropFilter` |
 | `.elevated(child:, onPressed:)` | 标准卡片 + 阴影，可点击 |
 | `.flat(child:, onPressed:)` | 卡片 + 边框，无阴影 |
+| `.grouped(child:)` | 零内边距分组卡片，用于承载 `McListTile` 设置列表 |
 
 ### 标签 — `McBadge`
 
@@ -184,8 +185,31 @@ final primary = context.mc.primary;      // Color，主色调
 
 | 组件 | 说明 |
 |------|------|
-| `McListTile` | 列表行：标题 + 副标题 + 可选 leading / trailing，支持点击 |
+| `McListTile` | 列表行：标题 + 副标题 + leading / trailing，支持点击、长按、选中、禁用、内建 chevron、自定义圆角与文字样式 |
 | `McStatChip` | 图标 + 文字统计 chip（点赞数、浏览数等） |
+
+```dart
+McCard.grouped(
+  child: Column(
+    children: [
+      McListTile(
+        title: const Text('通知'),
+        showChevron: true,
+        onTap: () {},
+      ),
+      McListTile(
+        title: const Text('当前选中项'),
+        selected: true,
+        onTap: () {},
+      ),
+      McListTile(
+        title: const Text('禁用项'),
+        enabled: false,
+      ),
+    ],
+  ),
+);
+```
 
 ### 状态 — `McEmpty`
 
@@ -216,7 +240,33 @@ final primary = context.mc.primary;      // Color，主色调
 | `McFeedback.showInfo()` | 信息 Toast（蓝色），3 秒消失 |
 | `McFeedback.showSuccess()` | 成功 Toast（绿色），3 秒消失 |
 | `McFeedback.showError()` | 错误 Toast（红色），3 秒消失 |
-| `McFeedback.confirm()` | 确认对话框，返回 `true` / `false` / `null`（取消） |
+| `McFeedback.confirm()` | 确认对话框（旧入口），返回 `true` / `false` / `null` |
+| `showMcConfirmDialog()` | 增强确认框：标题、内容、危险样式、自定义按钮文案 |
+| `showMcInputDialog()` | 输入框对话框，返回 `String?`，支持密码、初始值、键盘类型 |
+| `showMcDialog<T>()` | 通用多操作对话框，支持任意返回值、异步回调、`autoPop` |
+
+所有对话框沿用同一套玻璃拟态视觉（`BackdropFilter` + 半透明表面 + 圆角按钮）。
+
+```dart
+final ok = await showMcConfirmDialog(
+  context,
+  title: '删除确认',
+  message: '此操作无法撤销，确定要删除吗？',
+  cancelText: '取消',
+  confirmText: '删除',
+  destructive: true,
+);
+
+final name = await showMcInputDialog(
+  context,
+  title: '修改昵称',
+  hintText: '请输入昵称',
+  cancelText: '取消',
+  confirmText: '保存',
+);
+```
+
+> 需要 iOS 原生动作表时，直接使用 Flutter 的 `showCupertinoModalPopup` + `CupertinoActionSheet`。
 
 ### 响应式布局
 
@@ -240,37 +290,44 @@ final primary = context.mc.primary;      // Color，主色调
 
 | Token | 亮色 | 暗色 | 用途 |
 |-------|------|------|------|
-| `.primary` | `#0071E3` | `#0071E3` | 主色调 |
-| `.primarySoft` | `#0071E3` × 12% | `#0071E3` × 15% | 主色软背景（选中 chip、图标底色） |
+| `.primary` | `#007AFF` | `#0A84FF` | 主色调（iOS 系统蓝） |
+| `.primarySoft` | `#007AFF` × 12% | `#0A84FF` × 15% | 主色软背景（选中 chip、图标底色） |
 | `.primaryForeground` | `#FFFFFF` | `#FFFFFF` | 主色上的文字/图标 |
 
 #### Surface（表面色）
 
 | Token | 亮色 | 暗色 | 用途 |
 |-------|------|------|------|
-| `.background` | `#FFFFFF` | `#000000` | 页面背景 |
+| `.background` | `#FFFFFF` | `#000000` | 应用背景 |
+| `.groupedBackground` | `#F8F8F8` | `#000000` | 分组页面背景（`McPageScaffold` 默认） |
 | `.card` | `#FFFFFF` | `#1C1C1E` | 卡片 / 浮层背景 |
-| `.cardForeground` | `#1D1D1F` | `#F5F5F7` | 卡片上的文字 |
-| `.secondary` | `#F5F5F7` | `#2C2C2E` | 分组 / 次要背景 |
-| `.secondaryForeground` | `#1D1D1F` | `#F5F5F7` | 次要背景上的文字 |
-| `.muted` | `#F5F5F7` | `#2C2C2E` | 三级背景 |
+| `.cardOverlay` | `#FFFFFF` × 70% | `#EBEBF5` × 12% | 悬浮/按压叠层 |
+| `.cardForeground` | `#000000` | `#FFFFFF` | 卡片上的文字 |
+| `.secondary` | `#F2F2F7` | `#2C2C2E` | 分组 / 次要背景 |
+| `.secondaryForeground` | `#000000` | `#FFFFFF` | 次要背景上的文字 |
+| `.muted` | `#EFEFF4` | `#242426` | 三级背景 |
+| `.surfaceRaised` | `#F2F2F7` | `#2C2C2E` | 抬升表面 |
+| `.surfaceMuted` | `#EFEFF4` | `#242426` | 内嵌控件表面 |
+| `.surfaceSunken` | `#E5E5EA` | `#3A3A3C` | 凹陷表面 / 轨道 |
 
 #### Text（文字色）
 
 | Token | 亮色 | 暗色 | 用途 |
 |-------|------|------|------|
-| `.foreground` | `#1D1D1F` | `#F5F5F7` | 正文 / 主要文字 |
-| `.secondaryLabel` | `#86868B` | `#86868B` | 说明文字 |
+| `.foreground` | `#000000` | `#FFFFFF` | 正文 / 主要文字 |
+| `.secondaryLabel` | `#3C3C43` × 60% | `#EBEBF5` × 60% | 说明文字 |
 | `.tertiaryLabel` | `#3C3C43` × 30% | `#EBEBF5` × 30% | 占位符 / 禁用文字 |
 | `.quaternaryLabel` | `#3C3C43` × 18% | `#EBEBF5` × 18% | 最淡文字 |
+| `.inverseLabel` | `#FFFFFF` | `#000000` | 反色文字 |
 
 #### Divider（分隔色）
 
 | Token | 亮色 | 暗色 | 用途 |
 |-------|------|------|------|
 | `.separator` | `#3C3C43` × 20% | `#545458` × 20% | 分割线（半透明细线） |
-| `.border` | `#E5E5E7` | `#2C2C2E` | 边框（实色） |
-| `.input` | `#F5F5F7` | `#1C1C1E` | 输入框背景 |
+| `.border` | `#E5E5EA` | `#3A3A3C` | 细边框 |
+| `.borderStrong` | `#D1D1D6` | `#545458` | 强边框 / 拖拽条 |
+| `.input` | `#EFEFF4` | `#242426` | 输入框背景 |
 
 #### Semantic（语义色）
 
@@ -284,7 +341,27 @@ final primary = context.mc.primary;      // Color，主色调
 | `.dangerSoft` | `#FF3B30` × 12% | `#FF453A` × 15% | 危险色软背景 |
 | `.hot` | `#FF7A00` | `#FF7A00` | 热门 / 趋势 |
 
-> `context.mc.mutedForeground` 作为 `secondaryLabel` 的语义别名仍可用，推荐迁移到 `.secondaryLabel`。
+#### Accent palette（多色板）
+
+`indigo`、`purple`、`pink`、`cyan`、`yellow`，每个都有对应的 `...Soft` 软背景，亮/暗值取自 iOS 系统色板。
+
+```dart
+context.mc.indigo;      // #5856D6 / #5E5CE6
+context.mc.indigoSoft;  // 12% / 15%
+```
+
+#### Effects（效果色）
+
+| Token | 亮色 | 暗色 | 用途 |
+|-------|------|------|------|
+| `.onAccent` | `#FFFFFF` | `#FFFFFF` | 强调色上的文字 |
+| `.selectionFill` | `#787880` × 12% | `#787880` × 20% | 列表选中 / 按压背景 |
+| `.shadowColor` | `#000000` × 10% | 透明 | 卡片阴影 |
+| `.skeletonBase` | `#EBEBF4` | `#2C2C2E` | 骨架屏底色 |
+| `.skeletonHighlight` | `#F4F4F4` | `#3A3A3C` | 骨架屏高光 |
+
+> iOS 风格别名也可用：`.appBackground`、`.cardBackground`、`.label`、`.danger`。
+> `context.mc.mutedForeground` 作为 `secondaryLabel` 的语义别名仍可用。
 
 ### 字体 `context.mc.textXxx`
 
@@ -303,14 +380,37 @@ final primary = context.mc.primary;      // Color，主色调
 
 | Token | 值 | 用途 |
 |-------|-----|------|
+| `.radiusXs` | 4 | 极小元素 |
 | `.radiusSm` | 8 | 小组件 |
 | `.radiusMd` | 12 | 头像、图片 |
-| `.radiusLg` | 16 | 按钮、输入框 |
-| `.radiusXl` | 24 | 卡片、弹出层 |
+| `.radiusLg` | 16 | 大控件 |
+| `.radiusXl` | 24 | 对话框（保持原玻璃风格） |
 | `.radiusXxl` | 32 | 大面积表面 |
 | `.radiusPill` | 999 | 徽章、chip |
+| `.radiusControl` | 8 | 图标容器、行内控件 |
+| `.radiusNavigation` | 12 | 按钮、输入框、分段控件 |
+| `.radiusPanel` | 16 | 大面板 |
+| `.radiusCard` | 18 | 卡片、分组列表、列表行 |
+| `.radiusTile` | 22 | 仪表盘大图块 |
+| `.radiusSheetTop` | 18 | 底部弹层顶部圆角 |
+| `.radiusHandle` | 2.5 | 拖拽条 |
+| `.radiusIndicator` | 2 | 指示条 |
 
-> 也提供静态常量 `McRadii.sm`、`McRadii.lg` 等。
+> 也提供静态常量 `McRadii.sm`、`McRadii.card`、`McRadii.cardBorder` 等。
+
+### 平滑圆角 — `McSmoothCorners`
+
+卡片、按钮、列表行、输入框、弹出层都使用 Apple 风格的平滑圆角（squircle）：
+
+```dart
+McSmoothCorners.shape(McRadii.cardBorder); // SmoothRectangleBorder
+McSmoothCorners.clip(
+  borderRadius: McRadii.cardBorder,
+  child: child,
+);
+```
+
+默认平滑度 `0.8`；存在可见描边或圆角 ≤ 12 时自动使用 `0.6`。对话框刻意保持普通 24px 圆角，以维持原有玻璃拟态外观。
 
 ### 阴影 `context.mc.shadowXxx`
 

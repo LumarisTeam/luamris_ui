@@ -1,6 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../theme/mc_context.dart';
+import '../theme/mc_radii.dart';
+import '../theme/mc_smooth_corners.dart';
 
 // =============================================================================
 // McButton — unified button with named constructors per variant
@@ -22,12 +24,16 @@ class McButton extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
 
+  /// Corner radius override. Defaults to [McRadii.navigation] (12).
+  final double? radius;
+
   /// Filled primary action button.
   const McButton.primary({
     super.key,
     required this.onPressed,
     required this.child,
     this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+    this.radius,
   }) : _variant = _McButtonVariant.primary;
 
   /// Secondary / outline-style button with muted background.
@@ -36,6 +42,7 @@ class McButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+    this.radius,
   }) : _variant = _McButtonVariant.secondary;
 
   /// Transparent button — no background fill.
@@ -44,6 +51,7 @@ class McButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.padding = const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+    this.radius,
   }) : _variant = _McButtonVariant.ghost;
 
   /// Destructive / danger button — red fill.
@@ -52,41 +60,59 @@ class McButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+    this.radius,
   }) : _variant = _McButtonVariant.danger;
 
   @override
   Widget build(BuildContext context) {
     final m = context.mc;
     final disabled = onPressed == null;
+    final r = radius ?? McRadii.navigation;
 
     final (Color? bg, Color fg) = switch (_variant) {
       _McButtonVariant.primary => (
-          disabled ? m.primary.withValues(alpha: 0.45) : m.primary,
-          m.primaryForeground,
-        ),
+        disabled ? m.primary.withValues(alpha: 0.45) : m.primary,
+        m.primaryForeground,
+      ),
       _McButtonVariant.secondary => (
-          m.secondary,
-          disabled ? m.mutedForeground : m.secondaryForeground,
-        ),
+        m.secondary,
+        disabled ? m.mutedForeground : m.secondaryForeground,
+      ),
       _McButtonVariant.ghost => (
-          null,
-          disabled ? m.mutedForeground : m.primary,
-        ),
+        null,
+        disabled ? m.mutedForeground : m.primary,
+      ),
       _McButtonVariant.danger => (
-          disabled ? m.destructive.withValues(alpha: 0.45) : m.destructive,
-          m.primaryForeground,
-        ),
+        disabled ? m.destructive.withValues(alpha: 0.45) : m.destructive,
+        m.primaryForeground,
+      ),
     };
 
+    final content = DefaultTextStyle(
+      style: TextStyle(color: fg, fontSize: 16, fontWeight: FontWeight.w700),
+      child: child,
+    );
+
+    // The fill is painted inside the button so the pressed-state opacity
+    // applies to it, and so it can use the smooth corner shape.
+    final Widget body = bg == null
+        ? Padding(padding: padding, child: content)
+        : DecoratedBox(
+            decoration: ShapeDecoration(
+              color: bg,
+              shape: McSmoothCorners.shape(BorderRadius.circular(r)),
+            ),
+            child: Padding(padding: padding, child: content),
+          );
+
     return CupertinoButton(
-      padding: padding,
-      borderRadius: BorderRadius.circular(m.radiusLg),
-      color: bg,
+      padding: EdgeInsets.zero,
+      minimumSize: Size.zero,
+      pressedOpacity: 0.9,
+      foregroundColor: fg,
+      borderRadius: BorderRadius.circular(r),
       onPressed: onPressed,
-      child: DefaultTextStyle(
-        style: TextStyle(color: fg, fontSize: 16, fontWeight: FontWeight.w700),
-        child: child,
-      ),
+      child: body,
     );
   }
 }
