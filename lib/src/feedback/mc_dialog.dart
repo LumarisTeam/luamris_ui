@@ -218,38 +218,38 @@ class _McDialogSurface extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: CupertinoPopupSurface(
-              isSurfacePainted: false,
-              child: ClipRRect(
-                // Intentionally keeps the original circular 24px radius.
-                borderRadius: BorderRadius.circular(McRadii.xl),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Container(
-                    width: width,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: m.background.withValues(alpha: 0.98),
-                      borderRadius: BorderRadius.circular(McRadii.xl),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (hasTitle) ...[
-                          Text(
-                            title!,
-                            style: m.textSection,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        ?content,
-                        if (actions.isNotEmpty) ...[
-                          const SizedBox(height: 18),
-                          layoutActions(),
-                        ],
+            // A single glass surface: CupertinoPopupSurface is intentionally
+            // not used because it adds its own 13px superellipse clip and
+            // backdrop blur, which would misalign with the 24px dialog radius.
+            child: ClipRRect(
+              // Intentionally keeps the original circular 24px radius.
+              borderRadius: BorderRadius.circular(McRadii.xl),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  width: width,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: m.background.withValues(alpha: 0.98),
+                    borderRadius: BorderRadius.circular(McRadii.xl),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (hasTitle) ...[
+                        Text(
+                          title!,
+                          style: m.textSection,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
                       ],
-                    ),
+                      ?content,
+                      if (actions.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        layoutActions(),
+                      ],
+                    ],
                   ),
                 ),
               ),

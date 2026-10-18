@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+### Fixed
+
+- `showMcDialog` / `showMcConfirmDialog` / `showMcInputDialog` 移除 Flutter 3.47 中 `CupertinoPopupSurface` 自带的 13px 超椭圆裁剪与额外背景模糊，修复弹窗圆角出现双层错位的问题。弹窗现在只保留一层 24px 玻璃表面。
+
 ## 0.3.1
 
 ### Fixed

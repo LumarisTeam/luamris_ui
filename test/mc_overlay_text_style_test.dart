@@ -1,3 +1,4 @@
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -30,6 +31,32 @@ void main() {
     for (final rich in tester.widgetList<RichText>(find.byType(RichText))) {
       expect(rich.text.style?.decoration, isNot(TextDecoration.underline));
     }
+  });
+
+  testWidgets('dialog has a single rounded surface', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showMcConfirmDialog(
+                context: context,
+                title: '标题',
+                message: '内容',
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // CupertinoPopupSurface would add a second, 13px superellipse clip on top
+    // of the dialog's own 24px surface.
+    expect(find.byType(CupertinoPopupSurface), findsNothing);
   });
 
   testWidgets('bottom sheet text does not inherit the fallback underline', (

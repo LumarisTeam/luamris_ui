@@ -14,7 +14,7 @@ dependencies:
   luamris_ui:
     git:
       url: https://github.com/LumarisTeam/luamris_ui
-      ref: v0.3.1
+      ref: v0.3.2
 ```
 
 ```dart
