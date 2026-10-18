@@ -210,7 +210,7 @@ class _McDialogSurface extends StatelessWidget {
       );
     }
 
-    return AnimatedPadding(
+    final surface = AnimatedPadding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
@@ -257,6 +257,18 @@ class _McDialogSurface extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    // Dialog routes are not descendants of a Material/Scaffold, so without an
+    // explicit DefaultTextStyle their text inherits Flutter's yellow debug
+    // underline fallback.
+    return DefaultTextStyle(
+      style: TextStyle(
+        color: m.foreground,
+        fontSize: 16,
+        decoration: TextDecoration.none,
+      ),
+      child: surface,
     );
   }
 }

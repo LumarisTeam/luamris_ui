@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+### Fixed
+
+- `showMcDialog` / `showMcConfirmDialog` / `showMcInputDialog` 与 `showMcBottomSheet` 的文本不再继承 Flutter 在没有 Material/Scaffold 祖先时使用的黄色调试下划线样式；弹窗与弹层内部现在提供正常的 `DefaultTextStyle`。
+- `McFeedback` toast 的标题与消息显式设置 `TextDecoration.none`。
+
 ## 0.3.0
 
 迁移 `ios_club_app` 的 UI 能力到 `luamris_ui`。这是一次 minor 版本升级，包含视觉与 API 变更。

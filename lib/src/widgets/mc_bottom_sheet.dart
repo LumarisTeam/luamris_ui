@@ -66,6 +66,17 @@ Future<T?> showMcBottomSheet<T>({
             )
           : sheetContent;
 
+      // Modal routes are not descendants of a Material/Scaffold, so reset the
+      // fallback text style to avoid Flutter's yellow debug underline.
+      final themedContent = DefaultTextStyle(
+        style: TextStyle(
+          color: m.foreground,
+          fontSize: 16,
+          decoration: TextDecoration.none,
+        ),
+        child: content,
+      );
+
       Widget surface = McSmoothCorners.clip(
         borderRadius: borderRadius,
         side: side,
@@ -73,7 +84,7 @@ Future<T?> showMcBottomSheet<T>({
           filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
           child: ColoredBox(
             color: m.background.withValues(alpha: 0.94),
-            child: content,
+            child: themedContent,
           ),
         ),
       );
