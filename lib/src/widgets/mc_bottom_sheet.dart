@@ -9,8 +9,9 @@ import '../theme/mc_smooth_corners.dart';
 
 /// Shows a Cupertino modal popup styled with glass-morphism.
 ///
-/// On phones the sheet slides up from the bottom; on tablets / desktop it
-/// appears as a centered dialog.
+/// On phones the sheet slides up from the bottom and its grabber can be
+/// dragged down to dismiss it; on tablets / desktop it appears as a centered
+/// dialog (no grabber, not draggable).
 Future<T?> showMcBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -43,29 +44,6 @@ Future<T?> showMcBottomSheet<T>({
         sheetContent = Padding(padding: contentPadding, child: sheetContent);
       }
 
-      final content = showHandle
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: ShapeDecoration(
-                      color: m.borderStrong.withValues(alpha: 0.8),
-                      shape: McSmoothCorners.shape(
-                        BorderRadius.circular(McRadii.handle),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                sheetContent,
-              ],
-            )
-          : sheetContent;
-
       // Modal routes are not descendants of a Material/Scaffold, so reset the
       // fallback text style to avoid Flutter's yellow debug underline.
       final themedContent = DefaultTextStyle(
@@ -74,19 +52,19 @@ Future<T?> showMcBottomSheet<T>({
           fontSize: 16,
           decoration: TextDecoration.none,
         ),
-        child: content,
+        child: sheetContent,
       );
 
-      Widget surface = McSmoothCorners.clip(
+      Widget surface = _SheetSurface(
+        draggable: isPhone,
+        // A grabber only reads as "pull down to dismiss" when the sheet really
+        // rises from the bottom edge; a centered dialog is not draggable.
+        showGrabber: showHandle && isPhone,
         borderRadius: borderRadius,
         side: side,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-          child: ColoredBox(
-            color: m.background.withValues(alpha: 0.94),
-            child: themedContent,
-          ),
-        ),
+        background: m.background.withValues(alpha: 0.94),
+        grabberColor: m.borderStrong.withValues(alpha: 0.8),
+        child: themedContent,
       );
 
       if (maxHeight != null) {
@@ -113,4 +91,142 @@ Future<T?> showMcBottomSheet<T>({
       );
     },
   );
+}
+
+/// The glass surface of an mc sheet, plus the grabber that drags it away.
+class _SheetSurface extends StatefulWidget {
+  const _SheetSurface({
+    required this.draggable,
+    required this.showGrabber,
+    required this.borderRadius,
+    required this.side,
+    required this.background,
+    required this.grabberColor,
+    required this.child,
+  });
+
+  /// Whether dragging the grabber can dismiss the sheet.
+  final bool draggable;
+  final bool showGrabber;
+  final BorderRadius borderRadius;
+  final BorderSide side;
+  final Color background;
+  final Color grabberColor;
+  final Widget child;
+
+  @override
+  State<_SheetSurface> createState() => _SheetSurfaceState();
+}
+
+class _SheetSurfaceState extends State<_SheetSurface>
+    with SingleTickerProviderStateMixin {
+  /// Distance (logical px) the sheet must be pulled before a release dismisses.
+  static const _dismissDistance = 96.0;
+
+  /// Release velocity (px/s) that dismisses regardless of distance.
+  static const _dismissVelocity = 700.0;
+
+  /// Touch target of the grabber. Taller than the visible pill so the sheet
+  /// is easy to grab.
+  static const _grabberHeight = 28.0;
+
+  late final AnimationController _settle = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+
+  Animation<double>? _settleAnimation;
+
+  /// How far the sheet has been pulled down; 0 when resting.
+  double _offset = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _settle.addListener(_onSettleTick);
+  }
+
+  @override
+  void dispose() {
+    _settle.dispose();
+    super.dispose();
+  }
+
+  void _onSettleTick() {
+    final value = _settleAnimation?.value;
+    if (value != null) {
+      setState(() => _offset = value);
+    }
+  }
+
+  void _onDragStart(DragStartDetails details) {
+    _settle.stop();
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _offset = (_offset + details.delta.dy).clamp(0.0, double.infinity);
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final velocity = details.velocity.pixelsPerSecond.dy;
+    if (_offset > _dismissDistance || velocity > _dismissVelocity) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    _settleAnimation = Tween<double>(begin: _offset, end: 0).animate(
+      CurvedAnimation(parent: _settle, curve: Curves.easeOutCubic),
+    );
+    _settle.forward(from: 0);
+  }
+
+  Widget _buildGrabber() {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragStart: widget.draggable ? _onDragStart : null,
+      onVerticalDragUpdate: widget.draggable ? _onDragUpdate : null,
+      onVerticalDragEnd: widget.draggable ? _onDragEnd : null,
+      child: SizedBox(
+        height: _grabberHeight,
+        width: double.infinity,
+        child: Center(
+          child: Container(
+            width: 40,
+            height: 5,
+            decoration: ShapeDecoration(
+              color: widget.grabberColor,
+              shape: McSmoothCorners.shape(
+                BorderRadius.circular(McRadii.handle),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = widget.showGrabber
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [_buildGrabber(), widget.child],
+          )
+        : widget.child;
+
+    final surface = McSmoothCorners.clip(
+      borderRadius: widget.borderRadius,
+      side: widget.side,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: ColoredBox(color: widget.background, child: content),
+      ),
+    );
+
+    if (!widget.draggable) return surface;
+
+    return Transform.translate(offset: Offset(0, _offset), child: surface);
+  }
 }
