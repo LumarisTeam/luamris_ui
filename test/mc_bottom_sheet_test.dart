@@ -26,7 +26,10 @@ void main() {
     addTearDown(tester.view.reset);
   }
 
-  Future<void> openSheet(WidgetTester tester) async {
+  Future<void> openSheet(
+    WidgetTester tester, {
+    double bottomInset = 0,
+  }) async {
     await tester.pumpWidget(
       _app(
         (context) => Center(
@@ -34,6 +37,7 @@ void main() {
             onPressed: () => showMcBottomSheet(
               context: context,
               showHandle: true,
+              bottomInset: bottomInset,
               builder: (_) => const Padding(
                 padding: EdgeInsets.all(24),
                 child: Text('sheet body'),
@@ -93,6 +97,20 @@ void main() {
     expect(
       tester.getTopLeft(find.text('sheet body')).dy,
       moreOrLessEquals(restingTop, epsilon: 0.01),
+    );
+  });
+
+  testWidgets('bottomInset lifts the phone sheet above a tab bar', (
+    tester,
+  ) async {
+    await usePhoneSurface(tester);
+    await openSheet(tester, bottomInset: 60);
+
+    // 844 tall screen, 60 taken by the tab bar, then the 24 padding of the
+    // sheet content.
+    expect(
+      tester.getBottomLeft(find.text('sheet body')).dy,
+      moreOrLessEquals(844 - 60 - 24, epsilon: 0.5),
     );
   });
 

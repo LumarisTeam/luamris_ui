@@ -12,6 +12,12 @@ import '../theme/mc_smooth_corners.dart';
 /// On phones the sheet slides up from the bottom and its grabber can be
 /// dragged down to dismiss it; on tablets / desktop it appears as a centered
 /// dialog (no grabber, not draggable).
+///
+/// [bottomInset] keeps the phone sheet clear of whatever sits at the bottom of
+/// the screen — typically a tab bar the sheet would otherwise cover. It is
+/// measured from the safe area, so pass the bar's own height. When it is
+/// greater than zero the sheet floats with all four corners rounded instead of
+/// being attached to the bottom edge. It is ignored on tablets / desktop.
 Future<T?> showMcBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -19,6 +25,7 @@ Future<T?> showMcBottomSheet<T>({
   bool showHandle = false,
   EdgeInsetsGeometry? contentPadding,
   bool scrollable = false,
+  double bottomInset = 0,
 }) {
   return showCupertinoModalPopup<T>(
     context: context,
@@ -26,7 +33,8 @@ Future<T?> showMcBottomSheet<T>({
       final m = sheetContext.mc;
       final isPhone = McResponsive.isPhone(sheetContext);
       final maxWidth = McResponsive.sheetMaxWidth(sheetContext);
-      final borderRadius = isPhone
+      final inset = isPhone ? bottomInset : 0.0;
+      final borderRadius = isPhone && inset == 0
           ? BorderRadius.vertical(top: Radius.circular(McRadii.sheetTop))
           : BorderRadius.circular(McRadii.sheetTop);
       final side = BorderSide(
@@ -80,7 +88,7 @@ Future<T?> showMcBottomSheet<T>({
           top: false,
           child: Padding(
             padding: isPhone
-                ? const EdgeInsets.only(top: 40)
+                ? EdgeInsets.only(top: 40, bottom: inset)
                 : const EdgeInsets.symmetric(horizontal: 20),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
