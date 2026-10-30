@@ -236,7 +236,7 @@ McCard.grouped(
 
 | 函数 | 说明 |
 |------|------|
-| `showMcBottomSheet` | 毛玻璃底部弹出层，手机滑入，平板居中 |
+| `showMcBottomSheet` | 悬浮毛玻璃底部弹层：四周留白、全圆角、顶部手柄与关闭按钮；手机滑入，平板居中 |
 | `McFeedback.showInfo()` | 信息 Toast（蓝色），3 秒消失 |
 | `McFeedback.showSuccess()` | 成功 Toast（绿色），3 秒消失 |
 | `McFeedback.showError()` | 错误 Toast（红色），3 秒消失 |
@@ -246,6 +246,21 @@ McCard.grouped(
 | `showMcDialog<T>()` | 通用多操作对话框，支持任意返回值、异步回调、`autoPop` |
 
 所有对话框沿用同一套玻璃拟态视觉（`BackdropFilter` + 半透明表面 + 圆角按钮）。
+
+`showMcBottomSheet` 默认是悬浮卡片样式：左右各 16、底部 12 的留白，四角统一 24 圆角，顶部带拖拽手柄和左上角圆形关闭按钮。不需要手柄 / 关闭按钮时传 `showHandle: false` / `showCloseButton: false`；要恢复贴底样式传 `floating: false`。
+
+```dart
+showMcBottomSheet(
+  context: context,
+  builder: (ctx) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text('分享到', style: ctx.mc.textSection),
+      // ...
+    ],
+  ),
+);
+```
 
 ```dart
 final ok = await showMcConfirmDialog(

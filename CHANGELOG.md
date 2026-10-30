@@ -11,6 +11,15 @@
   - 可自定义宽度、圆角、背景色、遮罩色、阴影、间距、对齐方式、动画时长与曲线。
   - `matchTriggerWidth` 让菜单与触发控件等宽，适合下拉选择框。
   - `onOpenChanged` 可在打开 / 开始关闭时同步箭头等触发控件视觉。
+- **`showMcBottomSheet` 悬浮卡片样式**：手机端默认四周留白（左 / 右 16、底部 12）、四角 24 圆角、抬起阴影，视觉上不再贴底；平板 / 桌面仍为居中对话框。
+  - 新增 `showCloseButton`（默认 true）与 `onClose`：左上角圆形关闭按钮，默认关闭弹层。
+  - 新增 `floating`（默认 true）：传 false 可恢复旧的贴底样式。
+  - `showHandle` 默认值改为 true（顶部拖拽手柄）。
+  - `bottomInset` 仍然生效：传底部菜单栏高度时弹层停在其上方。
+
+### Changed
+
+- `showMcBottomSheet` 默认外观从贴底弹层改为悬浮卡片，并默认显示手柄与关闭按钮。需要旧样式的调用方传 `floating: false`，需要隐藏手柄 / 关闭按钮的传 `showHandle: false` / `showCloseButton: false`。
 
 ## 0.3.4
 

@@ -61,54 +61,43 @@ class BottomSheetDemo extends StatelessWidget {
   void _showBottomSheet(BuildContext context) {
     showMcBottomSheet(
       context: context,
+      contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       builder: (ctx) {
         final m = ctx.mc;
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: m.mutedForeground.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(m.radiusHandle),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text('分享到', style: m.textSection),
-              const SizedBox(height: 16),
-              McCard.grouped(
-                child: Column(
-                  children: [
-                    McListTile(
-                      leading: Icon(
-                        CupertinoIcons.paperplane,
-                        color: m.primary,
-                      ),
-                      title: const Text('发送给好友'),
-                      onTap: () => Navigator.of(ctx).pop(),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('分享到', style: m.textSection),
+            const SizedBox(height: 16),
+            McCard.grouped(
+              child: Column(
+                children: [
+                  McListTile(
+                    leading: Icon(
+                      CupertinoIcons.paperplane,
+                      color: m.primary,
                     ),
-                    Container(
-                      height: 0.5,
-                      color: m.separator.withValues(alpha: 0.5),
-                    ),
-                    McListTile(
-                      leading: Icon(CupertinoIcons.link, color: m.primary),
-                      title: const Text('复制链接'),
-                      onTap: () => Navigator.of(ctx).pop(),
-                    ),
-                  ],
-                ),
+                    title: const Text('发送给好友'),
+                    onTap: () => Navigator.of(ctx).pop(),
+                  ),
+                  Container(
+                    height: 0.5,
+                    color: m.separator.withValues(alpha: 0.5),
+                  ),
+                  McListTile(
+                    leading: Icon(CupertinoIcons.link, color: m.primary),
+                    title: const Text('复制链接'),
+                    onTap: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              McButton.secondary(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('取消'),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            McButton.secondary(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('取消'),
+            ),
+          ],
         );
       },
     );

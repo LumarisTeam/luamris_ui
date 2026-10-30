@@ -29,6 +29,9 @@ void main() {
   Future<void> openSheet(
     WidgetTester tester, {
     double bottomInset = 0,
+    bool floating = true,
+    bool showCloseButton = true,
+    bool showHandle = true,
   }) async {
     await tester.pumpWidget(
       _app(
@@ -36,7 +39,9 @@ void main() {
           child: CupertinoButton(
             onPressed: () => showMcBottomSheet(
               context: context,
-              showHandle: true,
+              showHandle: showHandle,
+              showCloseButton: showCloseButton,
+              floating: floating,
               bottomInset: bottomInset,
               builder: (_) => const Padding(
                 padding: EdgeInsets.all(24),
@@ -118,5 +123,86 @@ void main() {
     await openSheet(tester);
     expect(find.text('sheet body'), findsOneWidget);
     expect(_grabber(), findsNothing);
+  });
+
+  testWidgets('floating sheet keeps a gap on every side', (tester) async {
+    await usePhoneSurface(tester);
+    await openSheet(tester);
+
+    final topLeft = tester.getTopLeft(find.text('sheet body'));
+    final bottomLeft = tester.getBottomLeft(find.text('sheet body'));
+
+    // 16 horizontal inset + 24 content padding.
+    expect(topLeft.dx, moreOrLessEquals(40, epsilon: 0.5));
+    // 12 bottom inset + 24 content padding.
+    expect(bottomLeft.dy, moreOrLessEquals(844 - 12 - 24, epsilon: 0.5));
+    // The handle and the circular close button are both shown by default.
+    expect(_grabber(), findsOneWidget);
+    expect(find.byIcon(CupertinoIcons.xmark), findsOneWidget);
+  });
+
+  testWidgets('close button dismisses the sheet', (tester) async {
+    await usePhoneSurface(tester);
+    await openSheet(tester);
+
+    await tester.tap(find.byIcon(CupertinoIcons.xmark));
+    await tester.pumpAndSettle();
+
+    expect(find.text('sheet body'), findsNothing);
+  });
+
+  testWidgets('showCloseButton false hides the close button', (tester) async {
+    await usePhoneSurface(tester);
+    await openSheet(tester, showCloseButton: false);
+
+    expect(find.byIcon(CupertinoIcons.xmark), findsNothing);
+    expect(find.text('sheet body'), findsOneWidget);
+  });
+
+  testWidgets('floating false attaches the sheet to the bottom edge', (
+    tester,
+  ) async {
+    await usePhoneSurface(tester);
+    await openSheet(tester, floating: false, showCloseButton: false);
+
+    final topLeft = tester.getTopLeft(find.text('sheet body'));
+    final bottomLeft = tester.getBottomLeft(find.text('sheet body'));
+
+    expect(topLeft.dx, moreOrLessEquals(24, epsilon: 0.5));
+    expect(bottomLeft.dy, moreOrLessEquals(844 - 24, epsilon: 0.5));
+  });
+
+  testWidgets('header leaves room for scrollable content under maxHeight', (
+    tester,
+  ) async {
+    await usePhoneSurface(tester);
+    await tester.pumpWidget(
+      _app(
+        (context) => Center(
+          child: CupertinoButton(
+            onPressed: () => showMcBottomSheet(
+              context: context,
+              showHandle: true,
+              showCloseButton: true,
+              scrollable: true,
+              contentPadding: const EdgeInsets.all(24),
+              maxHeight: 300,
+              builder: (_) => Column(
+                children: [
+                  for (var i = 0; i < 40; i++)
+                    SizedBox(height: 40, child: Text('row $i')),
+                ],
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('row 0'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

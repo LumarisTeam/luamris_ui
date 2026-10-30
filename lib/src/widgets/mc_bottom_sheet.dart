@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../responsive/mc_responsive.dart';
 import '../theme/mc_context.dart';
@@ -9,23 +10,36 @@ import '../theme/mc_smooth_corners.dart';
 
 /// Shows a Cupertino modal popup styled with glass-morphism.
 ///
-/// On phones the sheet slides up from the bottom and its grabber can be
-/// dragged down to dismiss it; on tablets / desktop it appears as a centered
-/// dialog (no grabber, not draggable).
+/// On phones the sheet slides up from the bottom as a floating card: all four
+/// corners are rounded, it keeps 16pt from the left / right edges and a 12pt
+/// gap above the bottom safe area. Its grabber can be dragged down to dismiss
+/// it. On tablets / desktop it appears as a centered dialog (no grabber, not
+/// draggable).
+///
+/// By default the sheet shows a grabber and a circular close button in the
+/// top-left corner. Set [showHandle] / [showCloseButton] to false to hide
+/// them, or pass [floating] = false to revert to the edge-to-edge sheet.
 ///
 /// [bottomInset] keeps the phone sheet clear of whatever sits at the bottom of
 /// the screen — typically a tab bar the sheet would otherwise cover. It is
 /// measured from the safe area, so pass the bar's own height. When it is
-/// greater than zero the sheet floats with all four corners rounded instead of
-/// being attached to the bottom edge. It is ignored on tablets / desktop.
+/// greater than zero the sheet floats above the bar. It is ignored on tablets
+/// / desktop.
+///
+/// [onClose] is invoked by the close button and defaults to popping the sheet.
+/// [closeButtonSemanticLabel] is the accessibility label used for that button.
 Future<T?> showMcBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   double? maxHeight,
-  bool showHandle = false,
+  bool showHandle = true,
+  bool showCloseButton = true,
+  bool floating = true,
   EdgeInsetsGeometry? contentPadding,
   bool scrollable = false,
   double bottomInset = 0,
+  VoidCallback? onClose,
+  String closeButtonSemanticLabel = 'Close',
 }) {
   return showCupertinoModalPopup<T>(
     context: context,
@@ -33,14 +47,28 @@ Future<T?> showMcBottomSheet<T>({
       final m = sheetContext.mc;
       final isPhone = McResponsive.isPhone(sheetContext);
       final maxWidth = McResponsive.sheetMaxWidth(sheetContext);
-      final inset = isPhone ? bottomInset : 0.0;
-      final borderRadius = isPhone && inset == 0
-          ? BorderRadius.vertical(top: Radius.circular(McRadii.sheetTop))
-          : BorderRadius.circular(McRadii.sheetTop);
+      // Tablets / desktop always use the dialog look. On phones the sheet
+      // floats unless the caller opts out — or it has to clear a tab bar.
+      final isFloating = !isPhone || floating || bottomInset > 0;
+      final radius = isFloating ? McRadii.xl : McRadii.sheetTop;
+      final borderRadius = isFloating
+          ? BorderRadius.circular(radius)
+          : BorderRadius.vertical(top: Radius.circular(radius));
       final side = BorderSide(
         color: m.border.withValues(alpha: 0.35),
         width: 0.5,
       );
+      final background = isFloating
+          ? m.surfaceRaised.withValues(alpha: 0.97)
+          : m.background.withValues(alpha: 0.94);
+      final bottomGap = isPhone
+          ? (bottomInset > 0
+                ? bottomInset
+                : (floating ? _floatingBottomGap : 0.0))
+          : 0.0;
+      final horizontalGap = isPhone && isFloating
+          ? _floatingHorizontalGap
+          : 0.0;
 
       Widget sheetContent = builder(sheetContext);
       if (scrollable) {
@@ -65,13 +93,16 @@ Future<T?> showMcBottomSheet<T>({
 
       Widget surface = _SheetSurface(
         draggable: isPhone,
-        // A grabber only reads as "pull down to dismiss" when the sheet really
-        // rises from the bottom edge; a centered dialog is not draggable.
+        // Only the phone sheet is draggable; a centered tablet dialog is not.
         showGrabber: showHandle && isPhone,
+        showCloseButton: showCloseButton,
+        onClose: onClose ?? () => Navigator.of(sheetContext).pop(),
+        closeButtonSemanticLabel: closeButtonSemanticLabel,
         borderRadius: borderRadius,
         side: side,
-        background: m.background.withValues(alpha: 0.94),
+        background: background,
         grabberColor: m.borderStrong.withValues(alpha: 0.8),
+        shadows: isFloating ? _floatingShadows(m) : const <BoxShadow>[],
         child: themedContent,
       );
 
@@ -88,7 +119,12 @@ Future<T?> showMcBottomSheet<T>({
           top: false,
           child: Padding(
             padding: isPhone
-                ? EdgeInsets.only(top: 40, bottom: inset)
+                ? EdgeInsets.fromLTRB(
+                    horizontalGap,
+                    40,
+                    horizontalGap,
+                    bottomGap,
+                  )
                 : const EdgeInsets.symmetric(horizontal: 20),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
@@ -101,25 +137,52 @@ Future<T?> showMcBottomSheet<T>({
   );
 }
 
+/// Horizontal gap between a floating phone sheet and the screen edge.
+const double _floatingHorizontalGap = 16;
+
+/// Gap between a floating phone sheet and the bottom safe area.
+const double _floatingBottomGap = 12;
+
+List<BoxShadow> _floatingShadows(McTheme m) {
+  return <BoxShadow>[
+    BoxShadow(
+      color: Colors.black.withValues(
+        alpha: m.brightness == Brightness.dark ? 0.35 : 0.12,
+      ),
+      blurRadius: 28,
+      spreadRadius: -6,
+      offset: const Offset(0, 12),
+    ),
+  ];
+}
+
 /// The glass surface of an mc sheet, plus the grabber that drags it away.
 class _SheetSurface extends StatefulWidget {
   const _SheetSurface({
     required this.draggable,
     required this.showGrabber,
+    required this.showCloseButton,
+    required this.onClose,
+    required this.closeButtonSemanticLabel,
     required this.borderRadius,
     required this.side,
     required this.background,
     required this.grabberColor,
+    required this.shadows,
     required this.child,
   });
 
   /// Whether dragging the grabber can dismiss the sheet.
   final bool draggable;
   final bool showGrabber;
+  final bool showCloseButton;
+  final VoidCallback onClose;
+  final String closeButtonSemanticLabel;
   final BorderRadius borderRadius;
   final BorderSide side;
   final Color background;
   final Color grabberColor;
+  final List<BoxShadow> shadows;
   final Widget child;
 
   @override
@@ -184,9 +247,10 @@ class _SheetSurfaceState extends State<_SheetSurface>
       return;
     }
 
-    _settleAnimation = Tween<double>(begin: _offset, end: 0).animate(
-      CurvedAnimation(parent: _settle, curve: Curves.easeOutCubic),
-    );
+    _settleAnimation = Tween<double>(
+      begin: _offset,
+      end: 0,
+    ).animate(CurvedAnimation(parent: _settle, curve: Curves.easeOutCubic));
     _settle.forward(from: 0);
   }
 
@@ -217,14 +281,37 @@ class _SheetSurfaceState extends State<_SheetSurface>
 
   @override
   Widget build(BuildContext context) {
-    final content = widget.showGrabber
-        ? Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [_buildGrabber(), widget.child],
-          )
-        : widget.child;
+    Widget content = widget.child;
+    if (widget.showGrabber || widget.showCloseButton) {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (widget.showGrabber) _buildGrabber(),
+          if (widget.showCloseButton)
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                widget.showGrabber ? 0 : 12,
+                16,
+                4,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _SheetCloseButton(
+                  onPressed: widget.onClose,
+                  semanticLabel: widget.closeButtonSemanticLabel,
+                ),
+              ),
+            ),
+          // Keep header fixed while long / scrollable content shrinks to the
+          // remaining sheet height instead of overflowing it.
+          Flexible(child: widget.child),
+        ],
+      );
+    }
 
-    final surface = McSmoothCorners.clip(
+    final clipped = McSmoothCorners.clip(
       borderRadius: widget.borderRadius,
       side: widget.side,
       child: BackdropFilter(
@@ -233,8 +320,78 @@ class _SheetSurfaceState extends State<_SheetSurface>
       ),
     );
 
+    final surface = widget.shadows.isEmpty
+        ? clipped
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: widget.borderRadius,
+              boxShadow: widget.shadows,
+            ),
+            child: clipped,
+          );
+
     if (!widget.draggable) return surface;
 
     return Transform.translate(offset: Offset(0, _offset), child: surface);
+  }
+}
+
+/// Circular close button shown in the sheet's top-left corner.
+class _SheetCloseButton extends StatefulWidget {
+  const _SheetCloseButton({
+    required this.onPressed,
+    required this.semanticLabel,
+  });
+
+  final VoidCallback onPressed;
+  final String semanticLabel;
+
+  @override
+  State<_SheetCloseButton> createState() => _SheetCloseButtonState();
+}
+
+class _SheetCloseButtonState extends State<_SheetCloseButton> {
+  static const double _size = 40;
+
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final m = context.mc;
+
+    return Semantics(
+      button: true,
+      label: widget.semanticLabel,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => _setPressed(true),
+          onTapUp: (_) => _setPressed(false),
+          onTapCancel: () => _setPressed(false),
+          onTap: widget.onPressed,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 110),
+            curve: Curves.easeOut,
+            width: _size,
+            height: _size,
+            decoration: ShapeDecoration(
+              color: _pressed ? m.borderStrong : m.surfaceSunken,
+              shape: const CircleBorder(),
+            ),
+            child: Icon(
+              CupertinoIcons.xmark,
+              size: 16,
+              color: m.secondaryLabel,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
