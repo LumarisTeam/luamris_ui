@@ -98,6 +98,8 @@ class McPopoverMenu<T> extends StatefulWidget {
     this.animationDuration = const Duration(milliseconds: 170),
     this.animationCurve = Curves.easeOutCubic,
     this.enabled = true,
+    this.openOnTap = true,
+    this.openOnLongPress = false,
     this.onOpenChanged,
   });
 
@@ -160,6 +162,16 @@ class McPopoverMenu<T> extends StatefulWidget {
 
   /// When false, tapping [child] does nothing.
   final bool enabled;
+
+  /// Whether a tap on [child] opens the menu.
+  ///
+  /// Set this to false together with [openOnLongPress] when the trigger has
+  /// its own tap behaviour (e.g. a schedule header that jumps on tap and opens
+  /// the menu on long press).
+  final bool openOnTap;
+
+  /// Whether a long press on [child] opens the menu.
+  final bool openOnLongPress;
 
   /// Notifies the trigger when the menu starts opening or closing, e.g. to
   /// rotate a chevron.
@@ -563,7 +575,10 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
           cursor: widget.enabled ? SystemMouseCursors.click : MouseCursor.defer,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: _toggle,
+            onTap: widget.enabled && widget.openOnTap ? _toggle : null,
+            onLongPress: widget.enabled && widget.openOnLongPress
+                ? _toggle
+                : null,
             child: KeyedSubtree(key: _triggerKey, child: widget.child),
           ),
         ),

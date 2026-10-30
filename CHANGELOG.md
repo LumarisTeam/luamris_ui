@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.1
+
+### Added
+
+- **`McPopoverMenu`** 新增 `openOnTap` 与 `openOnLongPress`：
+  - `openOnTap`（默认 true）控制点击触发控件是否打开菜单。
+  - `openOnLongPress`（默认 false）控制长按是否打开菜单。
+  - 长按模式下不会抢走触发控件自身的点击 / 双击手势，适合「点击跳转、长按弹菜单」的场景。
+
+### Changed
+
+- `showMcBottomSheet` 悬浮态左右留白从 16 收紧到 4，更接近截图中的卡片效果；底部留白保持 12。
+- `showMcBottomSheet` 的 `showCloseButton` 默认值从 true 改为 false，关闭按钮改为按需开启。
+
 ## 0.4.0
 
 ### Added

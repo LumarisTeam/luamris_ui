@@ -14,7 +14,7 @@ dependencies:
   luamris_ui:
     git:
       url: https://github.com/LumarisTeam/luamris_ui
-      ref: v0.4.0
+      ref: v0.4.1
 ```
 
 ```dart
@@ -247,7 +247,7 @@ McCard.grouped(
 
 所有对话框沿用同一套玻璃拟态视觉（`BackdropFilter` + 半透明表面 + 圆角按钮）。
 
-`showMcBottomSheet` 默认是悬浮卡片样式：左右各 16、底部 12 的留白，四角统一 24 圆角，顶部带拖拽手柄和左上角圆形关闭按钮。不需要手柄 / 关闭按钮时传 `showHandle: false` / `showCloseButton: false`；要恢复贴底样式传 `floating: false`。
+`showMcBottomSheet` 默认是悬浮卡片样式：左右各 4、底部 12 的留白，四角统一 24 圆角，顶部带拖拽手柄。传 `showCloseButton: true` 可在左上角显示圆形关闭按钮；不需要手柄传 `showHandle: false`；要恢复贴底样式传 `floating: false`。
 
 ```dart
 showMcBottomSheet(
@@ -330,6 +330,8 @@ McPopoverMenu<int>(
 | `showCheckmark` | `true` | 选中项是否显示勾选图标 |
 | `animationDuration` | `170ms` | 打开 / 关闭动画时长 |
 | `animationCurve` | `easeOutCubic` | 打开 / 关闭动画曲线 |
+| `openOnTap` | `true` | 点击触发控件是否打开菜单 |
+| `openOnLongPress` | `false` | 长按触发控件是否打开菜单 |
 | `onOpenChanged` | — | 打开 / 开始关闭时回调，可用于旋转箭头 |
 
 > `child` 是触发控件本身，请不要再给它挂 `onTap`；菜单的 `GestureDetector` 会接管点击。

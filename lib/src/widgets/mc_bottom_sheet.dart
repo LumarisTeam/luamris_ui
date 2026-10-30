@@ -11,14 +11,15 @@ import '../theme/mc_smooth_corners.dart';
 /// Shows a Cupertino modal popup styled with glass-morphism.
 ///
 /// On phones the sheet slides up from the bottom as a floating card: all four
-/// corners are rounded, it keeps 16pt from the left / right edges and a 12pt
+/// corners are rounded, it keeps 4pt from the left / right edges and a 12pt
 /// gap above the bottom safe area. Its grabber can be dragged down to dismiss
 /// it. On tablets / desktop it appears as a centered dialog (no grabber, not
 /// draggable).
 ///
-/// By default the sheet shows a grabber and a circular close button in the
-/// top-left corner. Set [showHandle] / [showCloseButton] to false to hide
-/// them, or pass [floating] = false to revert to the edge-to-edge sheet.
+/// By default the sheet shows a grabber. Set [showHandle] to false to hide it,
+/// or pass [showCloseButton] = true to add a circular close button in the
+/// top-left corner. Pass [floating] = false to revert to the edge-to-edge
+/// sheet.
 ///
 /// [bottomInset] keeps the phone sheet clear of whatever sits at the bottom of
 /// the screen — typically a tab bar the sheet would otherwise cover. It is
@@ -33,7 +34,7 @@ Future<T?> showMcBottomSheet<T>({
   required WidgetBuilder builder,
   double? maxHeight,
   bool showHandle = true,
-  bool showCloseButton = true,
+  bool showCloseButton = false,
   bool floating = true,
   EdgeInsetsGeometry? contentPadding,
   bool scrollable = false,
@@ -53,7 +54,7 @@ Future<T?> showMcBottomSheet<T>({
       final radius = isFloating ? McRadii.xl : McRadii.sheetTop;
       final borderRadius = isFloating
           ? BorderRadius.circular(radius)
-          : BorderRadius.vertical(top: Radius.circular(radius));
+          : BorderRadius.vertical(top: Radius.circular(radius), bottom: Radius.circular(32));
       final side = BorderSide(
         color: m.border.withValues(alpha: 0.35),
         width: 0.5,
@@ -138,10 +139,10 @@ Future<T?> showMcBottomSheet<T>({
 }
 
 /// Horizontal gap between a floating phone sheet and the screen edge.
-const double _floatingHorizontalGap = 16;
+const double _floatingHorizontalGap = 8;
 
 /// Gap between a floating phone sheet and the bottom safe area.
-const double _floatingBottomGap = 12;
+const double _floatingBottomGap = 8;
 
 List<BoxShadow> _floatingShadows(McTheme m) {
   return <BoxShadow>[

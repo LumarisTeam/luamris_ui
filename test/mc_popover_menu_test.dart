@@ -278,6 +278,41 @@ void main() {
     expect(find.text('新页面'), findsOneWidget);
   });
 
+  testWidgets('can open on long press without stealing taps', (tester) async {
+    var tapped = false;
+    String? selected;
+
+    await tester.pumpWidget(
+      _app(
+        Center(
+          child: McPopoverMenu<String>(
+            openOnTap: false,
+            openOnLongPress: true,
+            items: const [McPopoverMenuItem(value: 'a', label: '选项 A')],
+            onSelected: (value) => selected = value,
+            child: GestureDetector(
+              onTap: () => tapped = true,
+              child: _trigger(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('打开'));
+    await tester.pumpAndSettle();
+    expect(tapped, isTrue);
+    expect(find.text('选项 A'), findsNothing);
+
+    await tester.longPress(find.text('打开'));
+    await tester.pumpAndSettle();
+    expect(find.text('选项 A'), findsOneWidget);
+
+    await tester.tap(find.text('选项 A'));
+    await tester.pumpAndSettle();
+    expect(selected, 'a');
+  });
+
   testWidgets('onOpenChanged reports open and closed', (tester) async {
     final states = <bool>[];
     await tester.pumpWidget(

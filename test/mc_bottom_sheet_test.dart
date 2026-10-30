@@ -132,11 +132,12 @@ void main() {
     final topLeft = tester.getTopLeft(find.text('sheet body'));
     final bottomLeft = tester.getBottomLeft(find.text('sheet body'));
 
-    // 16 horizontal inset + 24 content padding.
-    expect(topLeft.dx, moreOrLessEquals(40, epsilon: 0.5));
+    // 4 horizontal inset + 24 content padding.
+    expect(topLeft.dx, moreOrLessEquals(28, epsilon: 0.5));
     // 12 bottom inset + 24 content padding.
     expect(bottomLeft.dy, moreOrLessEquals(844 - 12 - 24, epsilon: 0.5));
-    // The handle and the circular close button are both shown by default.
+    // The handle is on by default; the close button is explicitly enabled by
+    // the helper.
     expect(_grabber(), findsOneWidget);
     expect(find.byIcon(CupertinoIcons.xmark), findsOneWidget);
   });
@@ -149,6 +150,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('sheet body'), findsNothing);
+  });
+
+  testWidgets('close button is opt-in', (tester) async {
+    await usePhoneSurface(tester);
+    await tester.pumpWidget(
+      _app(
+        (context) => Center(
+          child: CupertinoButton(
+            onPressed: () => showMcBottomSheet(
+              context: context,
+              builder: (_) => const Text('sheet body'),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('sheet body'), findsOneWidget);
+    expect(find.byIcon(CupertinoIcons.xmark), findsNothing);
   });
 
   testWidgets('showCloseButton false hides the close button', (tester) async {
