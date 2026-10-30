@@ -15,6 +15,7 @@ export 'src/widgets/mc_button.dart';
 export 'src/widgets/mc_card.dart';
 export 'src/widgets/mc_list_tile.dart';
 export 'src/widgets/mc_menu.dart';
+export 'src/widgets/mc_popover_menu.dart';
 export 'src/widgets/mc_badge.dart';
 export 'src/widgets/mc_stat_chip.dart';
 export 'src/widgets/mc_empty.dart';

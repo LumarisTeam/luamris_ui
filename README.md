@@ -14,7 +14,7 @@ dependencies:
   luamris_ui:
     git:
       url: https://github.com/LumarisTeam/luamris_ui
-      ref: v0.3.2
+      ref: v0.4.0
 ```
 
 ```dart
@@ -267,6 +267,57 @@ final name = await showMcInputDialog(
 ```
 
 > 需要 iOS 原生动作表时，直接使用 Flutter 的 `showCupertinoModalPopup` + `CupertinoActionSheet`。
+
+### 下拉菜单 — `McPopoverMenu`
+
+iOS 原生菜单风格的下拉列表。基于 `OverlayEntry` +
+`CompositedTransformTarget` / `CompositedTransformFollower` 实现，菜单会跟随触发控件移动。
+
+- 点击触发控件在附近弹出，点击外部或选中后关闭
+- 下方空间不足时自动翻到上方；左右越界时自动翻转 / 平移；空间过小时内部可滚动
+- 支持选中勾选、危险项、禁用项、图标
+- 菜单宽度、圆角、背景、阴影、动画均可自定义
+- `matchTriggerWidth` 让菜单与触发控件等宽，适合下拉选择框
+
+```dart
+int _term = 0;
+
+McPopoverMenu<int>(
+  items: const [
+    McPopoverMenuItem(value: 0, label: '第一学期'),
+    McPopoverMenuItem(value: 1, label: '第二学期', icon: CupertinoIcons.calendar),
+    McPopoverMenuItem(value: 2, label: '第三学期'),
+  ],
+  selectedValue: _term,
+  matchTriggerWidth: true,
+  // 可选：自定义外观 / 动画
+  // width: 240,
+  // radius: McRadii.card,
+  // backgroundColor: context.mc.card.withValues(alpha: 0.92),
+  // animationDuration: const Duration(milliseconds: 200),
+  onSelected: (value) => setState(() => _term = value),
+  child: const MyTrigger(),
+);
+```
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `items` | — | `McPopoverMenuItem<T>` 列表 |
+| `selectedValue` | `null` | 选中项的值，用于勾选图标与选中底色 |
+| `matchTriggerWidth` | `false` | 菜单宽度等于触发控件宽度 |
+| `width` | `224` | 菜单宽度（`matchTriggerWidth` 为 true 时忽略） |
+| `radius` | `McRadii.card` | 菜单圆角 |
+| `backgroundColor` | 半透明卡片色 | 菜单背景 |
+| `barrierColor` | 透明 | 菜单后方的遮罩色 |
+| `shadows` | 柔和投影 | 自定义阴影 |
+| `offset` | `Offset(0, 8)` | 与触发控件的间距；`dx` 会在限制到屏幕内之前先做水平微调 |
+| `alignment` | `start` | 水平对齐：`start` / `center` / `end` |
+| `showCheckmark` | `true` | 选中项是否显示勾选图标 |
+| `animationDuration` | `170ms` | 打开 / 关闭动画时长 |
+| `animationCurve` | `easeOutCubic` | 打开 / 关闭动画曲线 |
+| `onOpenChanged` | — | 打开 / 开始关闭时回调，可用于旋转箭头 |
+
+> `child` 是触发控件本身，请不要再给它挂 `onTap`；菜单的 `GestureDetector` 会接管点击。
 
 ### 响应式布局
 

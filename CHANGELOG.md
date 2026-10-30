@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0
+
+### Added
+
+- **`McPopoverMenu` / `McPopoverMenuItem`**：iOS 原生菜单风格的下拉列表。基于 `OverlayEntry` + `CompositedTransformTarget` / `CompositedTransformFollower` 实现，菜单会跟随触发控件定位。
+  - 点击触发控件在附近弹出；点击菜单外部或选中选项后自动关闭。
+  - 下方空间不足时自动翻到上方；左右越界时自动翻转 / 平移；空间过小时菜单内部可滚动。
+  - 支持选中状态、勾选图标、危险项、禁用项与前置图标。
+  - 可自定义宽度、圆角、背景色、遮罩色、阴影、间距、对齐方式、动画时长与曲线。
+  - `matchTriggerWidth` 让菜单与触发控件等宽，适合下拉选择框。
+  - `onOpenChanged` 可在打开 / 开始关闭时同步箭头等触发控件视觉。
+
 ## 0.3.4
 
 ### Added

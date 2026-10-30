@@ -10,6 +10,7 @@ import 'fields_demo.dart';
 import 'empty_demo.dart';
 import 'bottom_sheet_demo.dart';
 import 'dialogs_demo.dart';
+import 'popover_menu_demo.dart';
 import 'responsive_demo.dart';
 
 class HomePage extends StatelessWidget {
@@ -73,6 +74,12 @@ class HomePage extends StatelessWidget {
               title: '弹出层 & 反馈',
               subtitle: 'BottomSheet · Toast · Confirm',
               onTap: () => _navigate(context, const BottomSheetDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.chevron_down_circle,
+              title: '下拉菜单 McPopoverMenu',
+              subtitle: '锚定 · 自动避让 · 勾选',
+              onTap: () => _navigate(context, const PopoverMenuDemo()),
             ),
             _SectionCard(
               icon: CupertinoIcons.exclamationmark_bubble,
