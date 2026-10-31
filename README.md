@@ -14,7 +14,7 @@ dependencies:
   luamris_ui:
     git:
       url: https://github.com/LumarisTeam/luamris_ui
-      ref: v0.4.1
+      ref: v0.5.0
 ```
 
 ```dart
@@ -335,6 +335,46 @@ McPopoverMenu<int>(
 | `onOpenChanged` | — | 打开 / 开始关闭时回调，可用于旋转箭头 |
 
 > `child` 是触发控件本身，请不要再给它挂 `onTap`；菜单的 `GestureDetector` 会接管点击。
+
+### 动效 — `McMotion` 与动画组件
+
+克制的动效语言：曲线无过冲，按压轻、入场短，所有组件自动响应系统「减少动态效果」。
+
+```dart
+McAnimatedCard(child: YourCard())
+
+ListView.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) => McAnimatedListItem(
+    key: ValueKey(items[index].id),
+    index: index,
+    child: YourListTile(item: items[index]),
+  ),
+)
+
+McShimmerLoading(
+  isLoading: isLoading,
+  skeleton: const McListItemSkeleton(),
+  child: YourLoadedContent(),
+)
+```
+
+| 类 | 说明 |
+|------|------|
+| `McMotion` | 时长、曲线、位移、缩放 token；`reduceMotionOf(context)` 判断系统设置 |
+| `McMotionEntrance` | 一次性入场：淡入 + 位移 + 可选缩放，嵌套时由最外层统一编排 |
+| `McAnimatedCard` | 卡片入场（240 ms，向上 12 logical px） |
+| `McInteractiveCard` / `McHoverCard` | 按压反馈 / 桌面悬停轻微上浮 |
+| `McAnimatedInteractiveCard` | 入场 + 按压反馈组合 |
+| `McAnimatedButton` | 通用可操作区域：按压缩放、键盘 Enter / Space、焦点环 |
+| `McFadeButton` / `McBounceButton` / `McScaleTapContainer` | 文本操作、兼容旧名、带装饰的可点容器 |
+| `McAnimatedListItem` | 列表项错峰入场（每项 24 ms，上限 120 ms） |
+| `McAnimatedListItemSlideLeft` / `McAnimatedListItemScale` | 左滑入场 / 缩放入场变体 |
+| `McShimmerLoading` | 骨架屏闪光加载；离开加载态、减少动态效果或 `TickerMode` 关闭时停止 |
+| `McSkeletonBox` / `McSkeletonCircle` / `McSkeletonLine` | 骨架屏基础形状 |
+| `McListItemSkeleton` / `McCardSkeleton` | 预设列表行 / 卡片骨架 |
+
+> 一个内容区域只编排一层入场，避免嵌套淡入叠加；`McMotionEntrance` 会自动跳过内层。
 
 ### 响应式布局
 

@@ -24,6 +24,14 @@ export 'src/widgets/mc_bottom_sheet.dart';
 export 'src/widgets/mc_network_image.dart';
 export 'src/widgets/mc_field.dart';
 
+// Motion
+export 'src/motion/mc_motion.dart';
+export 'src/motion/mc_motion_entrance.dart';
+export 'src/motion/mc_animated_button.dart';
+export 'src/motion/mc_animated_card.dart';
+export 'src/motion/mc_animated_list_item.dart';
+export 'src/motion/mc_skeleton.dart';
+
 // Responsive
 export 'src/responsive/mc_responsive.dart';
 export 'src/responsive/mc_responsive_center.dart';

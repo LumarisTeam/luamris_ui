@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+
+### Added
+
+- **动效模块**：从光序应用迁入，公开 API 统一使用 `Mc` 前缀。
+  - `McMotion`：统一时长、曲线、位移、缩放 token，以及 `McMotion.reduceMotionOf(context)`。
+  - `McMotionEntrance`：一次性入场（淡入 + 位移 + 可选缩放），自动跳过嵌套入场，响应系统「减少动态效果」。
+  - `McAnimatedCard` / `McInteractiveCard` / `McHoverCard` / `McAnimatedInteractiveCard`。
+  - `McAnimatedButton` / `McBounceButton` / `McFadeButton` / `McScaleTapContainer`，支持键盘 Enter / Space 激活与主题色焦点环。
+  - `McAnimatedListItem` / `McAnimatedListItemSlideLeft` / `McAnimatedListItemScale`，列表项错峰入场。
+  - `McShimmerLoading`，以及 `McSkeletonBox` / `McSkeletonCircle` / `McSkeletonLine` / `McListItemSkeleton` / `McCardSkeleton`。
+- 骨架屏颜色读取 `context.mc.skeletonBase` / `skeletonHighlight`，自动跟随亮暗模式。
+
 ## 0.4.1
 
 ### Added
