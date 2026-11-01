@@ -11,7 +11,7 @@ import '../theme/mc_smooth_corners.dart';
 /// Shows a Cupertino modal popup styled with glass-morphism.
 ///
 /// On phones the sheet slides up from the bottom as a floating card: all four
-/// corners are rounded, it keeps 4pt from the left / right edges and a 12pt
+/// corners are rounded, it keeps 8pt from the left / right edges and an 8pt
 /// gap above the bottom safe area. Its grabber can be dragged down to dismiss
 /// it. On tablets / desktop it appears as a centered dialog (no grabber, not
 /// draggable).
@@ -54,7 +54,10 @@ Future<T?> showMcBottomSheet<T>({
       final radius = isFloating ? McRadii.xl : McRadii.sheetTop;
       final borderRadius = isFloating
           ? BorderRadius.circular(radius)
-          : BorderRadius.vertical(top: Radius.circular(radius), bottom: Radius.circular(32));
+          : BorderRadius.vertical(
+              top: Radius.circular(radius),
+              bottom: Radius.circular(32),
+            );
       final side = BorderSide(
         color: m.border.withValues(alpha: 0.35),
         width: 0.5,

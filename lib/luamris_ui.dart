@@ -35,6 +35,7 @@ export 'src/motion/mc_skeleton.dart';
 // Navigation
 export 'src/navigation/mc_sidebar.dart';
 export 'src/navigation/mc_sidebar_shell.dart';
+export 'src/navigation/mc_toolbar.dart';
 
 // Responsive
 export 'src/responsive/mc_responsive.dart';

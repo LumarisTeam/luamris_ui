@@ -1,11 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.5.1
 
-- 新增 `McSidebar` / `McSidebarDestination`，迁入光序 macOS 导航样式，支持亮暗主题、窗口焦点状态、键盘操作与自定义顶部 / 底部。
-- 新增 `McSidebarUserTile`，通过参数接收用户文案、头像与点击回调。
-- 新增 `McSidebarShell`，默认 220px，可在 180–280px 间拖拽，支持收起与重新展开。
-- example 新增侧边栏演示。
+### Added
+
+- `McSidebar` / `McSidebarDestination`：macOS 风格侧边栏，支持亮暗主题、窗口焦点配色、键盘操作、徽标与自定义顶部 / 底部。
+- `McSidebarUserTile`：通过参数接收用户文案、头像和点击回调。
+- `McSidebarShell` / `McSidebarController`：默认 220px、可在 180–280px 间拖拽的侧边栏布局，支持收起、重新展开和显隐状态监听。
+- `McToolBar`：默认 52px 的工具栏，支持标题、自动返回、亮暗主题、背景模糊、窄窗口溢出菜单，以及用于窗口移动和缩放的标题 / 空白区域手势回调。
+- `McToolBarIconButton` / `McToolBarPullDownButton` / `McToolBarMenuItem` / `McToolBarSpacer` / `McToolBarCustomItem`：支持标签、禁用 / 选中态、自定义控件和键盘菜单操作。
+- `McSidebarShell.toolbar` 与 `controller` 参数，用于组合工具栏和侧边栏；`McToolBar.leadingWidth` 支持并排放置多个导航按钮。
+- example 新增侧边栏、工具栏组合演示，包含显隐切换、搜索、排序和溢出操作。
+
+### Fixed
+
+- 底部弹层的文档和间距测试与已有的左右 / 底部 8px 留白保持一致，保留现有视觉样式。
 
 ## 0.5.0
 

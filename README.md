@@ -14,7 +14,7 @@ dependencies:
   luamris_ui:
     git:
       url: https://github.com/LumarisTeam/luamris_ui
-      ref: v0.5.0
+      ref: v0.5.1
 ```
 
 ```dart
@@ -247,7 +247,7 @@ McCard.grouped(
 
 所有对话框沿用同一套玻璃拟态视觉（`BackdropFilter` + 半透明表面 + 圆角按钮）。
 
-`showMcBottomSheet` 默认是悬浮卡片样式：左右各 4、底部 12 的留白，四角统一 24 圆角，顶部带拖拽手柄。传 `showCloseButton: true` 可在左上角显示圆形关闭按钮；不需要手柄传 `showHandle: false`；要恢复贴底样式传 `floating: false`。
+`showMcBottomSheet` 默认是悬浮卡片样式：左右及底部各 8 的留白，四角统一 24 圆角，顶部带拖拽手柄。传 `showCloseButton: true` 可在左上角显示圆形关闭按钮；不需要手柄传 `showHandle: false`；要恢复贴底样式传 `floating: false`。
 
 ```dart
 showMcBottomSheet(
@@ -404,6 +404,67 @@ McSidebarShell(
 `McSidebarShell` 需要父级提供有限宽高（例如页面主体或 `SizedBox`），默认宽度 220，可通过 `initialWidth` / `minWidth` / `maxWidth` 调整。向左拖至最小宽度之外 90px 会收起，从左边缘向右拖可展开。
 
 `McSidebar` 也可单独放进固定宽度容器；`selectedIndex: -1` 表示不选中。`top` / `bottom` 可放自定义内容，`backgroundColor` 可覆盖背景，导航项支持可选的 `selectedIcon` 与 `badge`。`McSidebarUserTile` 的 `subtitle` / `leading` / `onTap` 均可省略。窗口焦点由应用通过 `isWindowFocused` 传入，用户名、登录状态、本地化和导航也由应用提供。
+
+### macOS 工具栏
+
+`McToolBar` 参考 [macos_ui ToolBar](https://pub.dev/documentation/macos_ui/latest/macos_ui/ToolBar-class.html) 的交互结构，使用现有 Mc 主题，默认高 52px。支持标题、自动返回按钮、亮暗主题、标签、禁用 / 选中态、悬停提示、下拉菜单和窄窗口溢出菜单。
+
+```dart
+// 在 State 中创建，并在 dispose 中调用 sidebarController.dispose()。
+final sidebarController = McSidebarController();
+
+// build 中：
+McSidebarShell(
+  controller: sidebarController,
+  sidebar: yourSidebar,
+  toolbar: McToolBar(
+    title: const Text('全部文档'),
+    overflowLabel: '更多操作',
+    leading: McToolBarIconButton(
+      label: '切换侧边栏',
+      icon: const Icon(CupertinoIcons.sidebar_left),
+      onPressed: sidebarController.toggle,
+    ),
+    actions: [
+      McToolBarIconButton(
+        label: '新建',
+        icon: const Icon(CupertinoIcons.add),
+        onPressed: createDocument,
+      ),
+      const McToolBarSpacer(spacerUnits: 0.5),
+      McToolBarPullDownButton(
+        label: '排序',
+        icon: const Icon(CupertinoIcons.sort_down),
+        items: [
+          McToolBarMenuItem(label: '按名称', onSelected: sortByName),
+          McToolBarMenuItem(label: '按时间', onSelected: sortByDate),
+        ],
+      ),
+    ],
+  ),
+  child: currentPage,
+)
+```
+
+| 组件 / 参数 | 说明 |
+|------|------|
+| `McToolBar` | 可独立放入 `Column`、Material `Scaffold.appBar` 或 `McSidebarShell.toolbar`；需有限宽度 |
+| `McToolBarIconButton` | `onPressed: null` 禁用；`showLabel` 在图标下显示文字，`selected` 显示选中态 |
+| `McToolBarPullDownButton` | `items` 接收带回调的 `McToolBarMenuItem`；支持禁用项、图标和危险操作色 |
+| `McToolBarSpacer` | `spacerUnits × 32px` 的分组间隔，不出现在溢出菜单 |
+| `McToolBarCustomItem` | `width` + `child` 放搜索框等控件；须提供非空 `overflowItems`，确保窄窗口仍能使用对应操作 |
+| `McSidebarController` | `show()` / `hide()` / `toggle()`；通过 `isVisible` 和监听器读取显隐状态，拖动收起也同步通知 |
+| `leadingWidth` | leading 区域宽度（默认 40），并排放两个导航按钮时可设为 80 |
+| `titleWidth` / `centerTitle` | 标题期望宽度（默认 150）和居中显示；空间不足时压缩标题 |
+| `height` / `backgroundColor` / `dividerColor` | 高度、背景和底部分割线；`enableBlur` 启用 Flutter 背景模糊 |
+| `isWindowFocused` | 窗口失焦时淡化标题，由宿主传入 |
+| `onBackgroundPanStart` / `onBackgroundDoubleTap` | 标题及空白区域的拖拽 / 双击回调，可接窗口移动和缩放；导航按钮与操作按钮保留自身手势 |
+| `automaticallyImplyLeading` | 默认在可返回的路由上提供返回按钮；`leading` 可覆盖，`backButtonLabel` 可本地化 |
+| `overflowLabel` | 更多操作按钮的悬停提示与无障碍文案，默认英文，可传入本地化文本 |
+
+操作从右向左移入溢出菜单；下拉按钮的操作在溢出菜单里显示为「分组 / 操作」。菜单支持方向键切换、Enter / Space 执行、Esc 或点击外部关闭，窗口尺寸变化时关闭。大字号可配合提高 `height` 使用。
+
+工具栏绘制在 Flutter 内容区，原生标题栏、红黄绿窗口按钮和窗口拖拽由宿主处理。`McSidebarShell.toolbar` 位于右侧内容顶部，与侧边栏并排；`example` 的「macOS 工具栏」页面演示了完整组合。
 
 ### 响应式布局
 

@@ -132,10 +132,10 @@ void main() {
     final topLeft = tester.getTopLeft(find.text('sheet body'));
     final bottomLeft = tester.getBottomLeft(find.text('sheet body'));
 
-    // 4 horizontal inset + 24 content padding.
-    expect(topLeft.dx, moreOrLessEquals(28, epsilon: 0.5));
-    // 12 bottom inset + 24 content padding.
-    expect(bottomLeft.dy, moreOrLessEquals(844 - 12 - 24, epsilon: 0.5));
+    // 8 horizontal inset + 24 content padding.
+    expect(topLeft.dx, moreOrLessEquals(32, epsilon: 0.5));
+    // 8 bottom inset + 24 content padding.
+    expect(bottomLeft.dy, moreOrLessEquals(844 - 8 - 24, epsilon: 0.5));
     // The handle is on by default; the close button is explicitly enabled by
     // the helper.
     expect(_grabber(), findsOneWidget);
