@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- 新增 `McSidebar` / `McSidebarDestination`，迁入光序 macOS 导航样式，支持亮暗主题、窗口焦点状态、键盘操作与自定义顶部 / 底部。
+- 新增 `McSidebarUserTile`，通过参数接收用户文案、头像与点击回调。
+- 新增 `McSidebarShell`，默认 220px，可在 180–280px 间拖拽，支持收起与重新展开。
+- example 新增侧边栏演示。
+
 ## 0.5.0
 
 ### Added

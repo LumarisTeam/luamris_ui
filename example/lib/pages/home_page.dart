@@ -12,6 +12,7 @@ import 'bottom_sheet_demo.dart';
 import 'dialogs_demo.dart';
 import 'popover_menu_demo.dart';
 import 'responsive_demo.dart';
+import 'sidebar_demo.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -86,6 +87,12 @@ class HomePage extends StatelessWidget {
               title: '对话框',
               subtitle: 'Confirm · Input · Multi-action',
               onTap: () => _navigate(context, const DialogsDemo()),
+            ),
+            _SectionCard(
+              icon: CupertinoIcons.sidebar_left,
+              title: 'macOS 侧边栏',
+              subtitle: 'McSidebar · 拖拽宽度 · 窗口焦点',
+              onTap: () => _navigate(context, const SidebarDemo()),
             ),
             _SectionCard(
               icon: CupertinoIcons.square_grid_2x2,

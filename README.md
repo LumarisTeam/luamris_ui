@@ -376,6 +376,35 @@ McShimmerLoading(
 
 > 一个内容区域只编排一层入场，避免嵌套淡入叠加；`McMotionEntrance` 会自动跳过内层。
 
+### macOS 侧边栏
+
+从 `ios_club_app` 提取，保留 34px 导航行、20px 图标、5px 选中圆角和 Apple 字体。组件不依赖窗口插件、路由或状态管理。
+
+```dart
+McSidebarShell(
+  sidebar: McSidebar(
+    items: const [
+      McSidebarDestination(icon: Icons.home_outlined, selectedIcon: Icons.home, label: '首页'),
+      McSidebarDestination(icon: Icons.calendar_month, label: '课表'),
+    ],
+    selectedIndex: selectedIndex,
+    onItemSelected: (index) => setState(() => selectedIndex = index),
+    isWindowFocused: isWindowFocused,
+    bottom: McSidebarUserTile(
+      title: username,
+      subtitle: '个人资料',
+      leading: const Icon(Icons.account_circle, size: 24),
+      onTap: openProfile,
+    ),
+  ),
+  child: currentPage,
+)
+```
+
+`McSidebarShell` 需要父级提供有限宽高（例如页面主体或 `SizedBox`），默认宽度 220，可通过 `initialWidth` / `minWidth` / `maxWidth` 调整。向左拖至最小宽度之外 90px 会收起，从左边缘向右拖可展开。
+
+`McSidebar` 也可单独放进固定宽度容器；`selectedIndex: -1` 表示不选中。`top` / `bottom` 可放自定义内容，`backgroundColor` 可覆盖背景，导航项支持可选的 `selectedIcon` 与 `badge`。`McSidebarUserTile` 的 `subtitle` / `leading` / `onTap` 均可省略。窗口焦点由应用通过 `isWindowFocused` 传入，用户名、登录状态、本地化和导航也由应用提供。
+
 ### 响应式布局
 
 | 类 | 说明 |

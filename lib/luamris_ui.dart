@@ -32,6 +32,10 @@ export 'src/motion/mc_animated_card.dart';
 export 'src/motion/mc_animated_list_item.dart';
 export 'src/motion/mc_skeleton.dart';
 
+// Navigation
+export 'src/navigation/mc_sidebar.dart';
+export 'src/navigation/mc_sidebar_shell.dart';
+
 // Responsive
 export 'src/responsive/mc_responsive.dart';
 export 'src/responsive/mc_responsive_center.dart';
