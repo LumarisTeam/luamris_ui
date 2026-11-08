@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -21,6 +23,15 @@ import '../theme/mc_smooth_corners.dart';
 /// top-left corner. Pass [floating] = false to revert to the edge-to-edge
 /// sheet.
 ///
+/// On phones, [detents] sets the heights the sheet snaps to when the grabber
+/// is dragged. Pass strictly increasing fractions in (0, 0.85] of the
+/// available height after insets and [maxHeight] are applied. The highest
+/// detent extends to the screen edges, with safe-area padding inside the
+/// surface and any explicit [bottomInset] still reserved below it.
+/// [initialDetentIndex] selects the opening height and defaults to the lowest
+/// detent. An empty list keeps the content-sized sheet. Use [scrollable] for
+/// content taller than the lowest detent.
+///
 /// [bottomInset] keeps the phone sheet clear of whatever sits at the bottom of
 /// the screen — typically a tab bar the sheet would otherwise cover. It is
 /// measured from the safe area, so pass the bar's own height. When it is
@@ -33,6 +44,8 @@ Future<T?> showMcBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   double? maxHeight,
+  List<double> detents = const [],
+  int initialDetentIndex = 0,
   bool showHandle = true,
   bool showCloseButton = false,
   bool floating = true,
@@ -42,12 +55,41 @@ Future<T?> showMcBottomSheet<T>({
   VoidCallback? onClose,
   String closeButtonSemanticLabel = 'Close',
 }) {
+  final snapHeights = List<double>.of(detents);
+  var previous = 0.0;
+  for (final height in snapHeights) {
+    if (!height.isFinite || height <= previous || height > 0.85) {
+      throw ArgumentError.value(
+        detents,
+        'detents',
+        'Expected strictly increasing fractions in (0, 0.85].',
+      );
+    }
+    previous = height;
+  }
+  RangeError.checkValueInInterval(
+    initialDetentIndex,
+    0,
+    math.max(0, snapHeights.length - 1),
+    'initialDetentIndex',
+  );
+
   return showCupertinoModalPopup<T>(
     context: context,
     builder: (sheetContext) {
       final m = sheetContext.mc;
       final isPhone = McResponsive.isPhone(sheetContext);
       final maxWidth = McResponsive.sheetMaxWidth(sheetContext);
+      final hasDetents = isPhone && snapHeights.isNotEmpty;
+      final reservesBottomInset = isPhone && bottomInset > 0;
+      final safeArea = MediaQuery.paddingOf(sheetContext);
+      final movableSafePadding = hasDetents
+          ? EdgeInsets.only(
+              left: safeArea.left,
+              right: safeArea.right,
+              bottom: reservesBottomInset ? 0 : safeArea.bottom,
+            )
+          : EdgeInsets.zero;
       // Tablets / desktop always use the dialog look. On phones the sheet
       // floats unless the caller opts out — or it has to clear a tab bar.
       final isFloating = !isPhone || floating || bottomInset > 0;
@@ -65,10 +107,8 @@ Future<T?> showMcBottomSheet<T>({
       final background = isFloating
           ? m.surfaceRaised.withValues(alpha: 0.97)
           : m.background.withValues(alpha: 0.94);
-      final bottomGap = isPhone
-          ? (bottomInset > 0
-                ? bottomInset
-                : (floating ? _floatingBottomGap : 0.0))
+      final bottomGap = isPhone && floating && !reservesBottomInset
+          ? _floatingBottomGap
           : 0.0;
       final horizontalGap = isPhone && isFloating
           ? _floatingHorizontalGap
@@ -95,10 +135,19 @@ Future<T?> showMcBottomSheet<T>({
         child: sheetContent,
       );
 
-      Widget surface = _SheetSurface(
-        draggable: isPhone,
+      final surface = _SheetSurface(
         // Only the phone sheet is draggable; a centered tablet dialog is not.
         showGrabber: showHandle && isPhone,
+        detents: isPhone ? snapHeights : const [],
+        initialDetentIndex: isPhone ? initialDetentIndex : 0,
+        maxHeight: maxHeight,
+        floatingPadding: EdgeInsets.fromLTRB(
+          horizontalGap,
+          0,
+          horizontalGap,
+          bottomGap,
+        ),
+        movableSafePadding: movableSafePadding,
         showCloseButton: showCloseButton,
         onClose: onClose ?? () => Navigator.of(sheetContext).pop(),
         closeButtonSemanticLabel: closeButtonSemanticLabel,
@@ -110,24 +159,18 @@ Future<T?> showMcBottomSheet<T>({
         child: themedContent,
       );
 
-      if (maxHeight != null) {
-        surface = ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxHeight),
-          child: surface,
-        );
-      }
-
       return Align(
         alignment: isPhone ? Alignment.bottomCenter : Alignment.center,
         child: SafeArea(
           top: false,
+          left: !hasDetents,
+          right: !hasDetents,
+          bottom: !hasDetents || reservesBottomInset,
           child: Padding(
             padding: isPhone
-                ? EdgeInsets.fromLTRB(
-                    horizontalGap,
-                    40,
-                    horizontalGap,
-                    bottomGap,
+                ? EdgeInsets.only(
+                    top: 40,
+                    bottom: reservesBottomInset ? bottomInset : 0,
                   )
                 : const EdgeInsets.symmetric(horizontal: 20),
             child: ConstrainedBox(
@@ -163,8 +206,12 @@ List<BoxShadow> _floatingShadows(McTheme m) {
 /// The glass surface of an mc sheet, plus the grabber that drags it away.
 class _SheetSurface extends StatefulWidget {
   const _SheetSurface({
-    required this.draggable,
     required this.showGrabber,
+    required this.detents,
+    required this.initialDetentIndex,
+    required this.maxHeight,
+    required this.floatingPadding,
+    required this.movableSafePadding,
     required this.showCloseButton,
     required this.onClose,
     required this.closeButtonSemanticLabel,
@@ -176,9 +223,12 @@ class _SheetSurface extends StatefulWidget {
     required this.child,
   });
 
-  /// Whether dragging the grabber can dismiss the sheet.
-  final bool draggable;
   final bool showGrabber;
+  final List<double> detents;
+  final int initialDetentIndex;
+  final double? maxHeight;
+  final EdgeInsets floatingPadding;
+  final EdgeInsets movableSafePadding;
   final bool showCloseButton;
   final VoidCallback onClose;
   final String closeButtonSemanticLabel;
@@ -198,83 +248,135 @@ class _SheetSurfaceState extends State<_SheetSurface>
   /// Distance (logical px) the sheet must be pulled before a release dismisses.
   static const _dismissDistance = 96.0;
 
-  /// Release velocity (px/s) that dismisses regardless of distance.
-  static const _dismissVelocity = 700.0;
+  /// Release speed (px/s) at which the sheet snaps in the drag direction.
+  static const _flingVelocity = 700.0;
 
   /// Touch target of the grabber. Taller than the visible pill so the sheet
   /// is easy to grab.
   static const _grabberHeight = 28.0;
 
-  late final AnimationController _settle = AnimationController(
+  double get _minExtent => widget.detents.firstOrNull ?? 0;
+  double get _maxExtent => widget.detents.lastOrNull ?? 0;
+  double get _initialExtent =>
+      widget.detents.isEmpty ? 0 : widget.detents[widget.initialDetentIndex];
+
+  double get _dockProgress {
+    final detents = widget.detents;
+    if (detents.isEmpty) return 0;
+    if (detents.length == 1) return 1;
+    final previous = detents[detents.length - 2];
+    return ((_extent.value - previous) / (_maxExtent - previous)).clamp(0, 1);
+  }
+
+  // In detent mode this is a fraction of the available height. Below the
+  // minimum it translates the sheet downward instead of shrinking it further.
+  late final AnimationController _extent = AnimationController.unbounded(
+    value: _initialExtent,
     vsync: this,
-    duration: const Duration(milliseconds: 220),
+    animationBehavior: AnimationBehavior.normal,
   );
-
-  Animation<double>? _settleAnimation;
-
-  /// How far the sheet has been pulled down; 0 when resting.
-  double _offset = 0;
+  bool _pointerCancelled = false;
 
   @override
   void initState() {
     super.initState();
-    _settle.addListener(_onSettleTick);
+    _extent.addListener(_onExtentChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SheetSurface oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.detents != widget.detents) _extent.value = _initialExtent;
   }
 
   @override
   void dispose() {
-    _settle.dispose();
+    _extent.dispose();
     super.dispose();
   }
 
-  void _onSettleTick() {
-    final value = _settleAnimation?.value;
-    if (value != null) {
-      setState(() => _offset = value);
+  void _onExtentChanged() => setState(() {});
+
+  void _onDragUpdate(double delta, double availableHeight) {
+    if (availableHeight == 0) return;
+    _extent.value = math.min(
+      _maxExtent,
+      _extent.value - delta / availableHeight,
+    );
+  }
+
+  double _snapTarget(double velocity) {
+    if (velocity < -_flingVelocity) {
+      return widget.detents.firstWhere(
+        (height) => height > _extent.value,
+        orElse: () => _maxExtent,
+      );
     }
+    if (velocity > _flingVelocity) {
+      return widget.detents.lastWhere(
+        (height) => height < _extent.value,
+        orElse: () => _minExtent,
+      );
+    }
+    var nearest = _minExtent;
+    for (final height in widget.detents.skip(1)) {
+      if ((height - _extent.value).abs() < (nearest - _extent.value).abs()) {
+        nearest = height;
+      }
+    }
+    return nearest;
   }
 
-  void _onDragStart(DragStartDetails details) {
-    _settle.stop();
+  void _settleTo(double extent) {
+    _extent.animateTo(
+      extent,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
   }
 
-  void _onDragUpdate(DragUpdateDetails details) {
-    setState(() {
-      _offset = (_offset + details.delta.dy).clamp(0.0, double.infinity);
-    });
-  }
-
-  void _onDragEnd(DragEndDetails details) {
-    final velocity = details.velocity.pixelsPerSecond.dy;
-    if (_offset > _dismissDistance || velocity > _dismissVelocity) {
+  void _onDragEnd(double velocity, double availableHeight) {
+    if (_pointerCancelled) {
+      _settleTo(_snapTarget(0));
+      return;
+    }
+    final pullDown = (_minExtent - _extent.value) * availableHeight;
+    final canDismiss = widget.detents.isEmpty || pullDown > 0;
+    if (canDismiss &&
+        (pullDown > _dismissDistance || velocity > _flingVelocity) &&
+        ModalRoute.of(context)?.isCurrent == true) {
       Navigator.of(context).pop();
       return;
     }
-
-    _settleAnimation = Tween<double>(
-      begin: _offset,
-      end: 0,
-    ).animate(CurvedAnimation(parent: _settle, curve: Curves.easeOutCubic));
-    _settle.forward(from: 0);
+    _settleTo(_snapTarget(velocity));
   }
 
-  Widget _buildGrabber() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onVerticalDragStart: widget.draggable ? _onDragStart : null,
-      onVerticalDragUpdate: widget.draggable ? _onDragUpdate : null,
-      onVerticalDragEnd: widget.draggable ? _onDragEnd : null,
-      child: SizedBox(
-        height: _grabberHeight,
-        width: double.infinity,
-        child: Center(
-          child: Container(
-            width: 40,
-            height: 5,
-            decoration: ShapeDecoration(
-              color: widget.grabberColor,
-              shape: McSmoothCorners.shape(
-                BorderRadius.circular(McRadii.handle),
+  Widget _buildGrabber(double availableHeight, double height) {
+    return Listener(
+      onPointerCancel: (_) {
+        // Flutter also calls onVerticalDragEnd for an accepted drag on cancel.
+        _pointerCancelled = true;
+        scheduleMicrotask(() => _pointerCancelled = false);
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragStart: (_) => _extent.stop(),
+        onVerticalDragUpdate: (details) =>
+            _onDragUpdate(details.delta.dy, availableHeight),
+        onVerticalDragEnd: (details) =>
+            _onDragEnd(details.velocity.pixelsPerSecond.dy, availableHeight),
+        child: SizedBox(
+          height: height,
+          width: double.infinity,
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: ShapeDecoration(
+                color: widget.grabberColor,
+                shape: McSmoothCorners.shape(
+                  BorderRadius.circular(McRadii.handle),
+                ),
               ),
             ),
           ),
@@ -285,26 +387,73 @@ class _SheetSurfaceState extends State<_SheetSurface>
 
   @override
   Widget build(BuildContext context) {
+    final safePadding = widget.movableSafePadding;
+    return MediaQuery.removePadding(
+      context: context,
+      removeLeft: safePadding.left > 0,
+      removeRight: safePadding.right > 0,
+      removeBottom: safePadding.bottom > 0,
+      child: LayoutBuilder(
+        builder: (context, constraints) => _buildSurface(constraints),
+      ),
+    );
+  }
+
+  Widget _buildSurface(BoxConstraints constraints) {
+    final floatingPadding = widget.floatingPadding + widget.movableSafePadding;
+    final availableHeight = math.min(
+      constraints.deflate(floatingPadding).maxHeight,
+      widget.maxHeight ?? double.infinity,
+    );
+    final dockProgress = _dockProgress;
+    final outerPadding = EdgeInsets.lerp(
+      floatingPadding,
+      EdgeInsets.zero,
+      dockProgress,
+    )!;
+    final innerPadding = widget.movableSafePadding * dockProgress;
+    final borderRadius = BorderRadius.lerp(
+      widget.borderRadius,
+      const BorderRadius.vertical(top: Radius.circular(McRadii.sheetTop)),
+      dockProgress,
+    )!;
+    final sheetHeight = widget.detents.isEmpty
+        ? null
+        : math.max(_minExtent, _extent.value) * availableHeight;
+    final heightLimit = math.max(
+      0.0,
+      (sheetHeight ?? availableHeight) - innerPadding.vertical,
+    );
+    final grabberHeight = widget.showGrabber
+        ? math.min(_grabberHeight, heightLimit)
+        : 0.0;
+
     Widget content = widget.child;
     if (widget.showGrabber || widget.showCloseButton) {
       content = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          if (widget.showGrabber) _buildGrabber(),
+          if (widget.showGrabber) _buildGrabber(availableHeight, grabberHeight),
           if (widget.showCloseButton)
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                widget.showGrabber ? 0 : 12,
-                16,
-                4,
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: heightLimit - grabberHeight,
               ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: _SheetCloseButton(
-                  onPressed: widget.onClose,
-                  semanticLabel: widget.closeButtonSemanticLabel,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  widget.showGrabber ? 0 : 12,
+                  16,
+                  4,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  heightFactor: 1,
+                  child: _SheetCloseButton(
+                    onPressed: widget.onClose,
+                    semanticLabel: widget.closeButtonSemanticLabel,
+                  ),
                 ),
               ),
             ),
@@ -316,11 +465,14 @@ class _SheetSurfaceState extends State<_SheetSurface>
     }
 
     final clipped = McSmoothCorners.clip(
-      borderRadius: widget.borderRadius,
+      borderRadius: borderRadius,
       side: widget.side,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-        child: ColoredBox(color: widget.background, child: content),
+        child: ColoredBox(
+          color: widget.background,
+          child: Padding(padding: innerPadding, child: content),
+        ),
       ),
     );
 
@@ -328,15 +480,34 @@ class _SheetSurfaceState extends State<_SheetSurface>
         ? clipped
         : DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: widget.borderRadius,
-              boxShadow: widget.shadows,
+              borderRadius: borderRadius,
+              boxShadow: [
+                for (final shadow in widget.shadows)
+                  shadow.copyWith(
+                    color: shadow.color.withValues(
+                      alpha: shadow.color.a * (1 - dockProgress),
+                    ),
+                  ),
+              ],
             ),
             child: clipped,
           );
 
-    if (!widget.draggable) return surface;
-
-    return Transform.translate(offset: Offset(0, _offset), child: surface);
+    final pullDown = math.max(0.0, _minExtent - _extent.value);
+    return Padding(
+      padding: outerPadding,
+      child: Transform.translate(
+        offset: Offset(0, pullDown * availableHeight),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: availableHeight),
+          child: SizedBox(
+            width: sheetHeight == null ? null : double.infinity,
+            height: sheetHeight,
+            child: surface,
+          ),
+        ),
+      ),
+    );
   }
 }
 

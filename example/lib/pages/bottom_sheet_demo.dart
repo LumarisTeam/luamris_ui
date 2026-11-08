@@ -16,9 +16,19 @@ class BottomSheetDemo extends StatelessWidget {
         children: [
           _sectionTitle('BottomSheet 底部弹出层', m),
           const SizedBox(height: 10),
-          McButton.primary(
-            onPressed: () => _showBottomSheet(context),
-            child: const Text('打开底部弹出层'),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              McButton.primary(
+                onPressed: () => _showBottomSheet(context),
+                child: const Text('打开底部弹出层'),
+              ),
+              McButton.secondary(
+                onPressed: () => _showDetentSheet(context),
+                child: const Text('打开三档弹层'),
+              ),
+            ],
           ),
 
           const SizedBox(height: 28),
@@ -58,6 +68,44 @@ class BottomSheetDemo extends StatelessWidget {
     );
   }
 
+  void _showDetentSheet(BuildContext context) {
+    showMcBottomSheet(
+      context: context,
+      detents: const [0.35, 0.60, 0.85],
+      scrollable: true,
+      contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      builder: (ctx) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('附近地点', style: ctx.mc.textSection),
+          const SizedBox(height: 8),
+          const Text('拖动顶部手柄，在三档高度间切换。'),
+          const SizedBox(height: 16),
+          McCard.grouped(
+            child: Column(
+              children: [
+                for (final name in const [
+                  '图书馆',
+                  '教学楼',
+                  '体育馆',
+                  '学生中心',
+                  '食堂',
+                  '校医院',
+                  '校园书店',
+                  '行政楼',
+                ])
+                  McListTile(
+                    leading: const Icon(CupertinoIcons.location),
+                    title: Text(name),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showBottomSheet(BuildContext context) {
     showMcBottomSheet(
       context: context,
@@ -73,10 +121,7 @@ class BottomSheetDemo extends StatelessWidget {
               child: Column(
                 children: [
                   McListTile(
-                    leading: Icon(
-                      CupertinoIcons.paperplane,
-                      color: m.primary,
-                    ),
+                    leading: Icon(CupertinoIcons.paperplane, color: m.primary),
                     title: const Text('发送给好友'),
                     onTap: () => Navigator.of(ctx).pop(),
                   ),

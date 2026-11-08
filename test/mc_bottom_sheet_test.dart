@@ -32,6 +32,9 @@ void main() {
     bool floating = true,
     bool showCloseButton = true,
     bool showHandle = true,
+    List<double> detents = const [],
+    int initialDetentIndex = 0,
+    double? maxHeight,
   }) async {
     await tester.pumpWidget(
       _app(
@@ -43,6 +46,9 @@ void main() {
               showCloseButton: showCloseButton,
               floating: floating,
               bottomInset: bottomInset,
+              detents: detents,
+              initialDetentIndex: initialDetentIndex,
+              maxHeight: maxHeight,
               builder: (_) => const Padding(
                 padding: EdgeInsets.all(24),
                 child: Text('sheet body'),
@@ -105,6 +111,108 @@ void main() {
     );
   });
 
+  testWidgets(
+    'detents open at the selected height and snap in both directions',
+    (tester) async {
+      await usePhoneSurface(tester);
+      await openSheet(
+        tester,
+        detents: [0.3, 0.6, 0.85],
+        initialDetentIndex: 1,
+        maxHeight: 600,
+        bottomInset: 60,
+      );
+
+      void expectHeight(double height) {
+        final top = tester.getTopLeft(_grabber()).dy;
+        expect(top, closeTo(844 - 60 - height, 0.01));
+      }
+
+      expectHeight(360);
+      final gesture = await tester.startGesture(tester.getCenter(_grabber()));
+      await gesture.moveBy(const Offset(0, -125));
+      await tester.pump();
+      expect(tester.getTopLeft(_grabber()).dy, inExclusiveRange(274, 424));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expectHeight(510);
+
+      await tester.fling(_grabber(), const Offset(0, 60), 1100);
+      await tester.pumpAndSettle();
+      expectHeight(360);
+
+      await tester.timedDrag(
+        _grabber(),
+        const Offset(0, 210),
+        const Duration(milliseconds: 700),
+      );
+      await tester.pumpAndSettle();
+      expectHeight(180);
+
+      await tester.fling(_grabber(), const Offset(0, 60), 1100);
+      await tester.pumpAndSettle();
+      expect(find.text('sheet body'), findsNothing);
+    },
+  );
+
+  testWidgets('highest detent docks and moves safe padding inside', (
+    tester,
+  ) async {
+    await usePhoneSurface(tester);
+    tester.view.padding = const FakeViewPadding(
+      left: 20,
+      right: 12,
+      bottom: 34,
+    );
+    await openSheet(tester, detents: [0.6, 0.85]);
+
+    final surface = find.byType(BackdropFilter);
+    final floatingRect = tester.getRect(surface);
+    expect(floatingRect.left, 28);
+    expect(floatingRect.right, 370);
+    expect(floatingRect.bottom, 802);
+
+    final gesture = await tester.startGesture(tester.getCenter(_grabber()));
+    await gesture.moveBy(const Offset(0, -140));
+    await tester.pump();
+    expect(tester.getRect(surface).left, inExclusiveRange(0, 28));
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final dockedRect = tester.getRect(surface);
+    expect(dockedRect.left, 0);
+    expect(dockedRect.right, 390);
+    expect(dockedRect.bottom, 844);
+    expect(dockedRect.height, closeTo((844 - 40 - 34 - 8) * 0.85, 0.01));
+    expect(tester.getRect(_grabber()).left, 20);
+    final content = find.ancestor(
+      of: find.text('sheet body'),
+      matching: find.byType(Column),
+    );
+    expect(tester.getRect(content).bottom, 810);
+
+    await tester.fling(_grabber(), const Offset(0, 60), 1100);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(surface), floatingRect);
+  });
+
+  testWidgets('cancelled detent drag settles without dismissing', (
+    tester,
+  ) async {
+    await usePhoneSurface(tester);
+    await openSheet(tester, detents: [0.4, 0.8]);
+    final restingTop = tester.getTopLeft(_grabber()).dy;
+
+    final gesture = await tester.startGesture(tester.getCenter(_grabber()));
+    await gesture.moveBy(const Offset(0, 140));
+    await tester.pump();
+    expect(tester.getTopLeft(_grabber()).dy, greaterThan(restingTop + 96));
+
+    await gesture.cancel();
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(_grabber()).dy, closeTo(restingTop, 0.01));
+  });
+
   testWidgets('bottomInset lifts the phone sheet above a tab bar', (
     tester,
   ) async {
@@ -120,7 +228,7 @@ void main() {
   });
 
   testWidgets('tablets get no grabber and no drag target', (tester) async {
-    await openSheet(tester);
+    await openSheet(tester, detents: [0.4, 0.8]);
     expect(find.text('sheet body'), findsOneWidget);
     expect(_grabber(), findsNothing);
   });

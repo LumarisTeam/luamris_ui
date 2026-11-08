@@ -262,6 +262,22 @@ showMcBottomSheet(
 );
 ```
 
+手机端传入 `detents` 可启用多档高度。顶部手柄拖动时弹层跟手伸缩，慢拖松手后吸附到最近一档，快滑时吸附到滑动方向的下一档。从最低档继续下拉可关闭。
+
+```dart
+showMcBottomSheet(
+  context: context,
+  detents: const [0.35, 0.6, 0.85],
+  initialDetentIndex: 1,
+  scrollable: true,
+  builder: (ctx) => const Text('拖动顶部手柄调整高度'),
+);
+```
+
+档位按从小到大传入，取值大于 0 且不超过 0.85。每档高度以扣除安全区和留白后、再受 `maxHeight` 限制的可用高度为基准。最高档贴合屏幕两侧和底部，安全区留白移入弹层内部。显式设置的 `bottomInset` 继续为底栏预留空间。
+
+`initialDetentIndex` 从 0 开始，默认打开最低档。`scrollable: true` 让超出当前档位的内容可以独立滚动。
+
 ```dart
 final ok = await showMcConfirmDialog(
   context,
