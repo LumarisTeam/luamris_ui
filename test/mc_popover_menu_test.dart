@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +14,124 @@ Widget _app(Widget child) {
 }
 
 void main() {
+  testWidgets('reopens while closing and after rebuilding the trigger', (
+    tester,
+  ) async {
+    var open = false;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) => Center(
+            child: McPopoverMenu<String>(
+              items: const [McPopoverMenuItem(value: 'a', label: '选项 A')],
+              onSelected: (_) {},
+              onOpenChanged: (value) => setState(() => open = value),
+              child: _trigger(label: open ? '关闭' : '打开'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('打开'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(tester.getCenter(find.text('关闭')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(tester.getCenter(find.text('打开')));
+    await tester.pumpAndSettle();
+    expect(find.text('选项 A'), findsOneWidget);
+
+    await tester.tap(find.text('选项 A'));
+    await tester.pumpAndSettle();
+    expect(find.text('选项 A'), findsNothing);
+    await tester.tap(find.text('打开'));
+    await tester.pumpAndSettle();
+    expect(find.text('选项 A'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('keyboard skips disabled rows and restores trigger focus', (
+    tester,
+  ) async {
+    String? selected;
+    await tester.pumpWidget(
+      _app(
+        Center(
+          child: McPopoverMenu<String>(
+            items: const [
+              McPopoverMenuItem(value: 'a', label: '选项 A'),
+              McPopoverMenuItem(value: 'b', label: '选项 B', enabled: false),
+              McPopoverMenuItem(value: 'c', label: '选项 C'),
+            ],
+            onSelected: (value) => selected = value,
+            child: _trigger(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    final trigger = FocusManager.instance.primaryFocus;
+    expect(trigger?.debugLabel, 'Popover trigger');
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(find.text('选项 A'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CompositedTransformFollower),
+        matching: find.byType(ScaleTransition),
+      ),
+      findsNothing,
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(selected, 'c');
+    expect(find.text('选项 A'), findsNothing);
+    expect(FocusManager.instance.primaryFocus, same(trigger));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pump();
+    expect(find.text('选项 A'), findsNothing);
+    expect(FocusManager.instance.primaryFocus, same(trigger));
+  });
+
+  testWidgets('reduced motion opens without scaling on a pointer tap', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        Center(
+          child: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(disableAnimations: true),
+              child: McPopoverMenu<String>(
+                items: const [McPopoverMenuItem(value: 'a', label: '选项 A')],
+                onSelected: (_) {},
+                child: _trigger(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('打开'));
+    await tester.pump();
+    expect(find.text('选项 A'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CompositedTransformFollower),
+        matching: find.byType(ScaleTransition),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('opens, selects an item and closes', (tester) async {
     String? selected;
     await tester.pumpWidget(

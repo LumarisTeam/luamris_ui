@@ -3,8 +3,10 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/physics.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../motion/mc_motion.dart';
 import '../responsive/mc_responsive.dart';
 import '../theme/mc_context.dart';
 import '../theme/mc_radii.dart';
@@ -251,6 +253,18 @@ class _SheetSurfaceState extends State<_SheetSurface>
   /// Release speed (px/s) at which the sheet snaps in the drag direction.
   static const _flingVelocity = 700.0;
 
+  static final _settleSpring = _sheetSpring(dampingRatio: 1);
+  static final _flingSpring = _sheetSpring(dampingRatio: 0.8);
+
+  static SpringDescription _sheetSpring({required double dampingRatio}) {
+    const angularFrequency = 2 * math.pi / 0.3;
+    return SpringDescription.withDampingRatio(
+      mass: 1,
+      stiffness: angularFrequency * angularFrequency,
+      ratio: dampingRatio,
+    );
+  }
+
   /// Touch target of the grabber. Taller than the visible pill so the sheet
   /// is easy to grab.
   static const _grabberHeight = 28.0;
@@ -327,17 +341,32 @@ class _SheetSurfaceState extends State<_SheetSurface>
     return nearest;
   }
 
-  void _settleTo(double extent) {
-    _extent.animateTo(
-      extent,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+  void _settleTo(double target, double velocity, double availableHeight) {
+    final current = math.min(_extent.value, _maxExtent);
+    if (current == target ||
+        availableHeight <= 0 ||
+        McMotion.reduceMotionOf(context)) {
+      _extent.value = target;
+      return;
+    }
+    _extent.animateWith(
+      SpringSimulation(
+        velocity.abs() > _flingVelocity ? _flingSpring : _settleSpring,
+        current,
+        target,
+        -velocity / availableHeight,
+        tolerance: Tolerance(
+          distance: 0.01 / availableHeight,
+          velocity: 1 / availableHeight,
+        ),
+        snapToEnd: true,
+      ),
     );
   }
 
   void _onDragEnd(double velocity, double availableHeight) {
     if (_pointerCancelled) {
-      _settleTo(_snapTarget(0));
+      _settleTo(_snapTarget(0), 0, availableHeight);
       return;
     }
     final pullDown = (_minExtent - _extent.value) * availableHeight;
@@ -348,7 +377,7 @@ class _SheetSurfaceState extends State<_SheetSurface>
       Navigator.of(context).pop();
       return;
     }
-    _settleTo(_snapTarget(velocity));
+    _settleTo(_snapTarget(velocity), velocity, availableHeight);
   }
 
   Widget _buildGrabber(double availableHeight, double height) {
@@ -360,7 +389,10 @@ class _SheetSurfaceState extends State<_SheetSurface>
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onVerticalDragStart: (_) => _extent.stop(),
+        onVerticalDragStart: (_) {
+          _extent.stop();
+          if (_extent.value > _maxExtent) _extent.value = _maxExtent;
+        },
         onVerticalDragUpdate: (details) =>
             _onDragUpdate(details.delta.dy, availableHeight),
         onVerticalDragEnd: (details) =>
@@ -419,7 +451,7 @@ class _SheetSurfaceState extends State<_SheetSurface>
     )!;
     final sheetHeight = widget.detents.isEmpty
         ? null
-        : math.max(_minExtent, _extent.value) * availableHeight;
+        : _extent.value.clamp(_minExtent, _maxExtent) * availableHeight;
     final heightLimit = math.max(
       0.0,
       (sheetHeight ?? availableHeight) - innerPadding.vertical,

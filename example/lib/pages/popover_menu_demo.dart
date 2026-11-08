@@ -149,14 +149,10 @@ class _DropdownTrigger extends StatelessWidget {
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
-          AnimatedRotation(
-            turns: open ? 0.5 : 0,
-            duration: const Duration(milliseconds: 180),
-            child: Icon(
-              CupertinoIcons.chevron_down,
-              size: 16,
-              color: m.secondaryLabel,
-            ),
+          Icon(
+            open ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+            size: 16,
+            color: m.secondaryLabel,
           ),
         ],
       ),

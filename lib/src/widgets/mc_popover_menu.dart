@@ -2,8 +2,10 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../motion/mc_motion.dart';
 import '../theme/mc_context.dart';
 import '../theme/mc_radii.dart';
 import '../theme/mc_smooth_corners.dart';
@@ -62,7 +64,7 @@ class McPopoverMenuItem<T> {
 /// * flips above the trigger when there is not enough room below;
 /// * flips / shifts horizontally to stay inside the safe area;
 /// * becomes scrollable when the available vertical space is too short;
-/// * closes when the barrier is tapped or an entry is selected.
+/// * supports keyboard navigation and closes on Escape, outside tap or selection.
 ///
 /// ```dart
 /// McPopoverMenu<int>(
@@ -187,25 +189,67 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
 
   final LayerLink _layerLink = LayerLink();
   final GlobalKey _triggerKey = GlobalKey();
-  final ValueNotifier<int> _revision = ValueNotifier<int>(0);
+  late final FocusNode _triggerFocus = FocusNode(
+    debugLabel: 'Popover trigger',
+    onKeyEvent: _onTriggerKey,
+  );
+  final FocusNode _menuFocus = FocusNode(debugLabel: 'Popover menu');
+  final List<GlobalKey> _rowKeys = [];
+  late final AnimationController _controller;
 
   OverlayEntry? _entry;
-  AnimationController? _controller;
   _McPopoverGeometry? _geometry;
   ModalRoute<dynamic>? _route;
+  int? _activeIndex;
+  bool _showTriggerFocus = false;
   bool _closing = false;
+  bool _instant = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.dismissed && _closing) _finishClose();
+      });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (McMotion.reduceMotionOf(context) && _entry != null) {
+      _refreshOverlay();
+    }
+  }
 
   @override
   void didUpdateWidget(covariant McPopoverMenu<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_entry == null) return;
-    if (widget.items.isEmpty) {
-      _close(notify: false);
-      return;
-    }
-    // Items / selectedValue changed while the menu is open — repaint it with
-    // the latest data.
-    _revision.value++;
+    if (_entry != null) _refreshOverlay();
+  }
+
+  void _refreshOverlay() {
+    final entry = _entry;
+    // The root overlay may be outside the subtree Flutter is rebuilding.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || entry == null || !identical(entry, _entry)) return;
+      if (!widget.enabled || widget.items.isEmpty) {
+        _close(immediate: true);
+        return;
+      }
+      if (_activeIndex case final index? when !_isEnabledAt(index)) {
+        _activeIndex = null;
+      }
+      if (McMotion.reduceMotionOf(context)) {
+        _instant = true;
+        if (_closing) {
+          _finishClose();
+          return;
+        }
+        _controller.value = 1;
+      }
+      entry.markNeedsBuild();
+    });
   }
 
   @override
@@ -213,9 +257,9 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
     _detachRoute();
     _entry?.remove();
     _entry = null;
-    _controller?.dispose();
-    _controller = null;
-    _revision.dispose();
+    _controller.dispose();
+    _triggerFocus.dispose();
+    _menuFocus.dispose();
     super.dispose();
   }
 
@@ -237,77 +281,193 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
     if (!mounted || route == null) return;
     final covered = (route.secondaryAnimation?.value ?? 0) > 0;
     if (covered || !route.isCurrent) {
-      _close();
+      _close(immediate: true, restoreFocus: false);
     }
   }
 
   void _toggle() {
-    if (!widget.enabled) return;
-    if (_entry != null) {
+    if (_entry != null && !_closing) {
       _close();
     } else {
       _open();
     }
   }
 
-  void _open() {
-    if (!mounted || widget.items.isEmpty || _entry != null) return;
+  void _open({bool keyboard = false, bool fromEnd = false}) {
+    if (!mounted || !widget.enabled || widget.items.isEmpty) return;
+    if (_entry != null && !_closing) return;
 
     final geometry = _resolveGeometry();
     if (geometry == null) return;
 
-    final controller = AnimationController(
-      vsync: this,
-      duration: widget.animationDuration,
-    );
     _geometry = geometry;
-    _controller = controller;
     _closing = false;
+    _instant =
+        keyboard ||
+        McMotion.reduceMotionOf(context) ||
+        widget.animationDuration == Duration.zero;
+    _activeIndex = keyboard ? _initialIndex(fromEnd: fromEnd) : null;
 
-    final entry = OverlayEntry(builder: _buildOverlay);
-    _entry = entry;
-    Overlay.of(context, rootOverlay: true).insert(entry);
-    _attachRoute();
-    controller.forward();
+    if (_entry case final entry?) {
+      entry.markNeedsBuild();
+    } else {
+      final entry = OverlayEntry(builder: _buildOverlay);
+      _entry = entry;
+      Overlay.of(context, rootOverlay: true).insert(entry);
+      _attachRoute();
+    }
+    _controller.duration = widget.animationDuration;
+    if (_instant) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+    _menuFocus.requestFocus();
+    if (_activeIndex case final index?) _revealRow(index);
     widget.onOpenChanged?.call(true);
   }
 
-  void _close({bool notify = true}) {
+  void _close({bool immediate = false, bool restoreFocus = true}) {
     final entry = _entry;
-    final controller = _controller;
-    if (entry == null || controller == null || _closing) return;
-
-    _closing = true;
-    if (notify && mounted) {
-      widget.onOpenChanged?.call(false);
-    }
-    if (widget.animationDuration == Duration.zero) {
-      _finishClose(entry, controller);
+    if (entry == null) return;
+    if (_closing) {
+      if (immediate) _finishClose();
       return;
     }
-    controller.reverse().whenComplete(() => _finishClose(entry, controller));
+
+    _closing = true;
+    if (restoreFocus &&
+        (_route?.isCurrent ?? true) &&
+        _triggerFocus.canRequestFocus) {
+      _triggerFocus.requestFocus();
+    }
+    if (immediate || _instant || _controller.value == 0) {
+      _finishClose();
+    } else {
+      entry.markNeedsBuild();
+      _controller.reverse();
+    }
+    widget.onOpenChanged?.call(false);
   }
 
-  void _finishClose(OverlayEntry entry, AnimationController controller) {
+  void _finishClose() {
     _detachRoute();
-    if (_entry == entry) {
-      entry.remove();
-      _entry = null;
-    }
-    if (identical(_controller, controller)) {
-      _controller = null;
-    }
-    controller.dispose();
+    _entry?.remove();
+    _entry = null;
     _closing = false;
+    _controller.value = 0;
   }
 
-  void _select(McPopoverMenuItem<T> item) {
-    if (!widget.enabled || !item.enabled) return;
+  void _select(McPopoverMenuItem<T> item, {bool keyboard = false}) {
+    if (_closing || !widget.enabled || !item.enabled) return;
     try {
       widget.onSelected(item.value);
     } finally {
-      _close();
+      _close(immediate: keyboard);
     }
+  }
+
+  bool _isEnabledAt(int index) =>
+      index >= 0 && index < widget.items.length && widget.items[index].enabled;
+
+  int? _initialIndex({required bool fromEnd}) {
+    final selected = widget.selectedValue == null
+        ? -1
+        : widget.items.indexWhere(
+            (item) => item.enabled && item.value == widget.selectedValue,
+          );
+    if (selected != -1) return selected;
+    final index = fromEnd
+        ? widget.items.lastIndexWhere((item) => item.enabled)
+        : widget.items.indexWhere((item) => item.enabled);
+    return index == -1 ? null : index;
+  }
+
+  void _moveSelection(int direction) {
+    final count = widget.items.length;
+    var index = _activeIndex ?? (direction > 0 ? -1 : 0);
+    for (var checked = 0; checked < count; checked++) {
+      index = (index + direction) % count;
+      if (!_isEnabledAt(index)) continue;
+      _activeIndex = index;
+      _entry?.markNeedsBuild();
+      _revealRow(index);
+      return;
+    }
+  }
+
+  void _revealRow(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _closing || _entry == null || _activeIndex != index) {
+        return;
+      }
+      if (index < _rowKeys.length && _rowKeys[index].currentContext != null) {
+        Scrollable.ensureVisible(_rowKeys[index].currentContext!);
+      }
+    });
+  }
+
+  KeyEventResult _onMenuKey(FocusNode node, KeyEvent event) {
+    if (_closing) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowDown ||
+        key == LogicalKeyboardKey.arrowUp) {
+      if (event is KeyDownEvent || event is KeyRepeatEvent) {
+        _moveSelection(key == LogicalKeyboardKey.arrowDown ? 1 : -1);
+      }
+      return KeyEventResult.handled;
+    }
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (key == LogicalKeyboardKey.escape) {
+      _close(immediate: true);
+    } else if (key == LogicalKeyboardKey.tab) {
+      _close(immediate: true);
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        _triggerFocus.previousFocus();
+      } else {
+        _triggerFocus.nextFocus();
+      }
+    } else if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.space) {
+      final index = _activeIndex ?? _initialIndex(fromEnd: false);
+      if (index != null && _isEnabledAt(index)) {
+        _select(widget.items[index], keyboard: true);
+      }
+    } else {
+      return KeyEventResult.ignored;
+    }
+    return KeyEventResult.handled;
+  }
+
+  void _onBarrierTap(TapUpDetails details) {
+    if (!_closing) {
+      _close();
+      return;
+    }
+    final box = _triggerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (widget.openOnTap &&
+        box != null &&
+        box.attached &&
+        (Offset.zero & box.size).contains(
+          box.globalToLocal(details.globalPosition),
+        )) {
+      _open();
+    }
+  }
+
+  KeyEventResult _onTriggerKey(FocusNode node, KeyEvent event) {
+    if (!node.hasPrimaryFocus) return KeyEventResult.ignored;
+    if (_entry != null && !_closing) return _onMenuKey(node, event);
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+    if (key != LogicalKeyboardKey.enter &&
+        key != LogicalKeyboardKey.space &&
+        key != LogicalKeyboardKey.arrowDown &&
+        key != LogicalKeyboardKey.arrowUp) {
+      return KeyEventResult.ignored;
+    }
+    _open(keyboard: true, fromEnd: key == LogicalKeyboardKey.arrowUp);
+    return KeyEventResult.handled;
   }
 
   /// Measures the trigger in overlay coordinates and decides which side of it
@@ -424,55 +584,58 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
   }
 
   Widget _buildOverlay(BuildContext overlayContext) {
-    return ValueListenableBuilder<int>(
-      valueListenable: _revision,
-      builder: (context, _, _) {
-        final controller = _controller;
-        final geometry = _geometry;
-        if (controller == null || geometry == null) {
-          return const SizedBox.shrink();
-        }
-
-        final animation = CurvedAnimation(
-          parent: controller,
-          curve: widget.animationCurve,
-        );
-
-        return SizedBox.expand(
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: <Widget>[
-              Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _close,
-                  child: ColoredBox(
-                    color: widget.barrierColor ?? const Color(0x00000000),
-                  ),
-                ),
+    final geometry = _geometry!;
+    final animation = _controller.drive(
+      CurveTween(curve: widget.animationCurve),
+    );
+    final panel = _buildPanel(overlayContext, geometry);
+    return SizedBox.expand(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true,
+              onTapUp: _onBarrierTap,
+              child: ColoredBox(
+                color: widget.barrierColor ?? const Color(0x00000000),
               ),
-              CompositedTransformFollower(
-                link: _layerLink,
-                showWhenUnlinked: false,
-                targetAnchor: geometry.targetAnchor,
-                followerAnchor: geometry.followerAnchor,
-                offset: geometry.offset,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: ScaleTransition(
-                    scale: Tween<double>(
-                      begin: 0.92,
-                      end: 1,
-                    ).animate(animation),
-                    alignment: geometry.scaleOrigin,
-                    child: _buildPanel(context, geometry),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+          CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            targetAnchor: geometry.targetAnchor,
+            followerAnchor: geometry.followerAnchor,
+            offset: geometry.offset,
+            child: IgnorePointer(
+              ignoring: _closing,
+              child: ExcludeSemantics(
+                excluding: _closing,
+                child: Focus(
+                  focusNode: _menuFocus,
+                  skipTraversal: true,
+                  onKeyEvent: _onMenuKey,
+                  child: _instant
+                      ? panel
+                      : FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: Tween<double>(
+                              begin: 0.95,
+                              end: 1,
+                            ).animate(animation),
+                            alignment: geometry.scaleOrigin,
+                            child: panel,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -484,22 +647,26 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
       width: 0.5,
     );
 
-    final rows = <Widget>[
-      for (final item in widget.items)
-        _McPopoverMenuRow(
-          label: item.label,
-          icon: item.icon,
-          iconColor: item.iconColor,
-          selected:
-              widget.selectedValue != null &&
-              item.value == widget.selectedValue,
-          showCheckmark: widget.showCheckmark,
-          destructive: item.isDestructive,
-          enabled: item.enabled && widget.enabled,
-          minHeight: widget.itemHeight,
-          onTap: () => _select(item),
-        ),
-    ];
+    while (_rowKeys.length < widget.items.length) {
+      _rowKeys.add(GlobalKey());
+    }
+    final rows = List.generate(widget.items.length, (index) {
+      final item = widget.items[index];
+      return _McPopoverMenuRow(
+        key: _rowKeys[index],
+        label: item.label,
+        icon: item.icon,
+        iconColor: item.iconColor,
+        selected:
+            widget.selectedValue != null && item.value == widget.selectedValue,
+        highlighted: _activeIndex == index,
+        showCheckmark: widget.showCheckmark,
+        destructive: item.isDestructive,
+        enabled: item.enabled && widget.enabled,
+        minHeight: widget.itemHeight,
+        onTap: () => _select(item),
+      );
+    });
 
     final content = ConstrainedBox(
       constraints: BoxConstraints(maxHeight: geometry.maxHeight),
@@ -566,20 +733,38 @@ class _McPopoverMenuState<T> extends State<McPopoverMenu<T>>
 
   @override
   Widget build(BuildContext context) {
+    final interactive =
+        widget.enabled &&
+        widget.items.isNotEmpty &&
+        (widget.openOnTap || widget.openOnLongPress);
     return Semantics(
       button: true,
       enabled: widget.enabled,
       child: CompositedTransformTarget(
         link: _layerLink,
-        child: MouseRegion(
-          cursor: widget.enabled ? SystemMouseCursors.click : MouseCursor.defer,
+        child: FocusableActionDetector(
+          enabled: interactive,
+          focusNode: _triggerFocus,
+          onShowFocusHighlight: (value) =>
+              setState(() => _showTriggerFocus = value),
+          mouseCursor: interactive
+              ? SystemMouseCursors.click
+              : MouseCursor.defer,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: widget.enabled && widget.openOnTap ? _toggle : null,
-            onLongPress: widget.enabled && widget.openOnLongPress
-                ? _toggle
-                : null,
-            child: KeyedSubtree(key: _triggerKey, child: widget.child),
+            onTap: interactive && widget.openOnTap ? _toggle : null,
+            onLongPress: interactive && widget.openOnLongPress ? _toggle : null,
+            child: DecoratedBox(
+              key: _triggerKey,
+              position: DecorationPosition.foreground,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(McRadii.navigation),
+                border: _showTriggerFocus
+                    ? Border.all(color: context.mc.primary, width: 2)
+                    : null,
+              ),
+              child: widget.child,
+            ),
           ),
         ),
       ),
@@ -609,8 +794,10 @@ class _McPopoverGeometry {
 
 class _McPopoverMenuRow extends StatefulWidget {
   const _McPopoverMenuRow({
+    super.key,
     required this.label,
     required this.selected,
+    required this.highlighted,
     required this.showCheckmark,
     required this.destructive,
     required this.enabled,
@@ -624,6 +811,7 @@ class _McPopoverMenuRow extends StatefulWidget {
   final IconData? icon;
   final Color? iconColor;
   final bool selected;
+  final bool highlighted;
   final bool showCheckmark;
   final bool destructive;
   final bool enabled;
@@ -686,15 +874,16 @@ class _McPopoverMenuRowState extends State<_McPopoverMenuRow> {
           onTapUp: enabled ? (_) => _setPressed(false) : null,
           onTapCancel: enabled ? () => _setPressed(false) : null,
           onTap: enabled ? widget.onTap : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 110),
-            curve: Curves.easeOut,
+          child: Container(
             constraints: BoxConstraints(minHeight: widget.minHeight),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: ShapeDecoration(
               color: background,
               shape: McSmoothCorners.shape(
                 BorderRadius.circular(McRadii.navigation),
+                side: widget.highlighted
+                    ? BorderSide(color: m.primary, width: 2)
+                    : BorderSide.none,
               ),
             ),
             child: Row(

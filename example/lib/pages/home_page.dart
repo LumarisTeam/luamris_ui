@@ -15,159 +15,222 @@ import 'responsive_demo.dart';
 import 'sidebar_demo.dart';
 import 'toolbar_demo.dart';
 
-class HomePage extends StatelessWidget {
+typedef _DemoEntry = ({
+  IconData icon,
+  String title,
+  String subtitle,
+  Widget page,
+});
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // final m = context.mc;
-
-    return McPageScaffold(
-      title: 'Luamris UI',
-      navigationBarStyle: McNavigationBarStyle.large,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionCard(
-              icon: CupertinoIcons.circle_grid_3x3_fill,
-              title: '按钮 McButton',
-              subtitle: 'primary · secondary · ghost · danger',
-              onTap: () => _navigate(context, const ButtonsDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.square_on_square,
-              title: '卡片 McCard',
-              subtitle: 'glass · elevated · flat',
-              onTap: () => _navigate(context, const CardsDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.list_bullet,
-              title: '列表 McListTile',
-              subtitle: 'leading · title · subtitle · trailing',
-              onTap: () => _navigate(context, const ListTilesDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.tag_fill,
-              title: '标签 & 统计',
-              subtitle: 'McBadge · McStatChip',
-              onTap: () => _navigate(context, const BadgesDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.person_crop_circle_fill,
-              title: '头像 McAvatar',
-              subtitle: 'network · SVG · initials fallback',
-              onTap: () => _navigate(context, const AvatarsDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.pencil,
-              title: '表单 McField',
-              subtitle: 'text · password · validation',
-              onTap: () => _navigate(context, const FieldsDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.tray,
-              title: '空状态 McEmpty',
-              subtitle: 'placeholder · retry',
-              onTap: () => _navigate(context, const EmptyDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.rectangle_stack,
-              title: '弹出层 & 反馈',
-              subtitle: 'BottomSheet · Toast · Confirm',
-              onTap: () => _navigate(context, const BottomSheetDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.chevron_down_circle,
-              title: '下拉菜单 McPopoverMenu',
-              subtitle: '锚定 · 自动避让 · 勾选',
-              onTap: () => _navigate(context, const PopoverMenuDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.exclamationmark_bubble,
-              title: '对话框',
-              subtitle: 'Confirm · Input · Multi-action',
-              onTap: () => _navigate(context, const DialogsDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.wrench,
-              title: 'macOS 工具栏',
-              subtitle: 'McToolBar · 下拉菜单 · 溢出操作',
-              onTap: () => _navigate(context, const ToolbarDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.sidebar_left,
-              title: 'macOS 侧边栏',
-              subtitle: 'McSidebar · 拖拽宽度 · 窗口焦点',
-              onTap: () => _navigate(context, const SidebarDemo()),
-            ),
-            _SectionCard(
-              icon: CupertinoIcons.square_grid_2x2,
-              title: '响应式布局',
-              subtitle: 'McResponsive · McTwoPane',
-              onTap: () => _navigate(context, const ResponsiveDemo()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _navigate(BuildContext context, Widget page) {
-    Navigator.of(context).push(CupertinoPageRoute(builder: (_) => page));
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
+class _HomePageState extends State<HomePage> {
+  static const List<({String title, List<_DemoEntry> entries})> _groups = [
+    (
+      title: '基础组件',
+      entries: [
+        (
+          icon: CupertinoIcons.circle_grid_3x3_fill,
+          title: '按钮 McButton',
+          subtitle: 'primary · secondary · ghost · danger',
+          page: ButtonsDemo(),
+        ),
+        (
+          icon: CupertinoIcons.square_on_square,
+          title: '卡片 McCard',
+          subtitle: 'glass · elevated · flat',
+          page: CardsDemo(),
+        ),
+        (
+          icon: CupertinoIcons.list_bullet,
+          title: '列表 McListTile',
+          subtitle: 'leading · title · subtitle · trailing',
+          page: ListTilesDemo(),
+        ),
+        (
+          icon: CupertinoIcons.tag_fill,
+          title: '标签 & 统计',
+          subtitle: 'McBadge · McStatChip',
+          page: BadgesDemo(),
+        ),
+        (
+          icon: CupertinoIcons.person_crop_circle_fill,
+          title: '头像 McAvatar',
+          subtitle: 'network · SVG · initials fallback',
+          page: AvatarsDemo(),
+        ),
+        (
+          icon: CupertinoIcons.tray,
+          title: '空状态 McEmpty',
+          subtitle: 'placeholder · retry',
+          page: EmptyDemo(),
+        ),
+      ],
+    ),
+    (
+      title: '输入与反馈',
+      entries: [
+        (
+          icon: CupertinoIcons.pencil,
+          title: '表单 McField',
+          subtitle: 'text · password · validation',
+          page: FieldsDemo(),
+        ),
+        (
+          icon: CupertinoIcons.rectangle_stack,
+          title: '弹出层 & 反馈',
+          subtitle: 'BottomSheet · Toast · Confirm',
+          page: BottomSheetDemo(),
+        ),
+        (
+          icon: CupertinoIcons.chevron_down_circle,
+          title: '下拉菜单 McPopoverMenu',
+          subtitle: '锚定 · 自动避让 · 勾选',
+          page: PopoverMenuDemo(),
+        ),
+        (
+          icon: CupertinoIcons.exclamationmark_bubble,
+          title: '对话框',
+          subtitle: 'Confirm · Input · Multi-action',
+          page: DialogsDemo(),
+        ),
+      ],
+    ),
+    (
+      title: '导航与布局',
+      entries: [
+        (
+          icon: CupertinoIcons.wrench,
+          title: 'macOS 工具栏',
+          subtitle: 'McToolBar · 下拉菜单 · 溢出操作',
+          page: ToolbarDemo(),
+        ),
+        (
+          icon: CupertinoIcons.sidebar_left,
+          title: 'macOS 侧边栏',
+          subtitle: 'McSidebar · 拖拽宽度 · 窗口焦点',
+          page: SidebarDemo(),
+        ),
+        (
+          icon: CupertinoIcons.square_grid_2x2,
+          title: '响应式布局',
+          subtitle: 'McResponsive · McTwoPane',
+          page: ResponsiveDemo(),
+        ),
+      ],
+    ),
+  ];
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+  static final _entries = [for (final group in _groups) ...group.entries];
+
+  static final _destinations = [
+    for (final entry in _entries)
+      McSidebarDestination(icon: entry.icon, label: entry.title),
+  ];
+
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final m = context.mc;
+    return McResponsive.isDesktop(context)
+        ? _buildDesktop(context)
+        : _buildCatalog(context);
+  }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: McCard.elevated(
-        onPressed: onTap,
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: m.primarySoft,
-                borderRadius: BorderRadius.circular(m.radiusControl),
+  Widget _buildDesktop(BuildContext context) {
+    final m = context.mc;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: 236,
+          child: SafeArea(
+            child: McSidebar(
+              items: _destinations,
+              selectedIndex: _selectedIndex,
+              onItemSelected: (index) => setState(() => _selectedIndex = index),
+              top: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Semantics(
+                    header: true,
+                    child: Text('Luamris UI', style: m.textSection),
+                  ),
+                ),
               ),
-              child: Icon(icon, color: m.primary, size: 22),
             ),
-            const SizedBox(width: 14),
-            Expanded(
+          ),
+        ),
+        SizedBox(width: 1, child: ColoredBox(color: m.border)),
+        Expanded(
+          child: KeyedSubtree(
+            key: ValueKey(_selectedIndex),
+            child: _entries[_selectedIndex].page,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCatalog(BuildContext context) {
+    final m = context.mc;
+    return McPageScaffold(
+      title: 'Luamris UI',
+      maxContentWidth: 640,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final group in _groups) ...[
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 12, bottom: 8),
+              child: Semantics(
+                header: true,
+                child: Text(group.title, style: m.textSection),
+              ),
+            ),
+            McCard.grouped(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: m.textSection),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: m.textMuted),
+                  for (final (index, entry) in group.entries.indexed) ...[
+                    if (index > 0)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(start: 62),
+                        child: SizedBox(
+                          height: 0.5,
+                          width: double.infinity,
+                          child: ColoredBox(color: m.separator),
+                        ),
+                      ),
+                    McListTile(
+                      leading: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: m.primarySoft,
+                          borderRadius: BorderRadius.circular(m.radiusControl),
+                        ),
+                        child: Icon(entry.icon, color: m.primary, size: 18),
+                      ),
+                      title: Text(entry.title),
+                      subtitle: Text(entry.subtitle),
+                      showChevron: true,
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute<void>(builder: (_) => entry.page),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            Icon(
-              CupertinoIcons.chevron_right,
-              color: m.mutedForeground,
-              size: 18,
-            ),
+            const SizedBox(height: 24),
           ],
-        ),
+        ],
       ),
     );
   }

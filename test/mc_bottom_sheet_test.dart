@@ -35,7 +35,14 @@ void main() {
     List<double> detents = const [],
     int initialDetentIndex = 0,
     double? maxHeight,
+    bool reduceMotion = false,
   }) async {
+    if (reduceMotion) {
+      final dispatcher = tester.binding.platformDispatcher;
+      dispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(dispatcher.clearAccessibilityFeaturesTestValue);
+    }
     await tester.pumpWidget(
       _app(
         (context) => Center(
@@ -154,6 +161,27 @@ void main() {
       expect(find.text('sheet body'), findsNothing);
     },
   );
+
+  testWidgets('reduced motion settles at the detent on the next frame', (
+    tester,
+  ) async {
+    await usePhoneSurface(tester);
+    await openSheet(
+      tester,
+      detents: [0.3, 0.6],
+      maxHeight: 600,
+      reduceMotion: true,
+    );
+
+    final gesture = await tester.startGesture(tester.getCenter(_grabber()));
+    await gesture.moveBy(const Offset(0, -130));
+    await tester.pump();
+    expect(tester.getTopLeft(_grabber()).dy, inExclusiveRange(484, 664));
+
+    await gesture.up();
+    await tester.pump();
+    expect(tester.getTopLeft(_grabber()).dy, closeTo(484, 0.01));
+  });
 
   testWidgets('highest detent docks and moves safe padding inside', (
     tester,

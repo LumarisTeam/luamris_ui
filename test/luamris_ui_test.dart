@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -5,8 +7,27 @@ import 'package:luamris_ui/luamris_ui.dart';
 
 void main() {
   group('McColors', () {
-    test('light primary uses iOS system blue', () {
-      expect(McColors.light.primary.toARGB32(), 0xFF007AFF);
+    test('default button and secondary label pairs meet 4.5:1 contrast', () {
+      double contrast(Color foreground, Color background) {
+        final a = Color.alphaBlend(foreground, background).computeLuminance();
+        final b = background.computeLuminance();
+        return (math.max(a, b) + 0.05) / (math.min(a, b) + 0.05);
+      }
+
+      for (final colors in [McColors.light, McColors.dark]) {
+        for (final fill in [colors.primary, colors.destructive]) {
+          expect(
+            contrast(colors.primaryForeground, fill),
+            greaterThanOrEqualTo(4.5),
+          );
+        }
+        for (final surface in [colors.card, colors.groupedBackground]) {
+          expect(
+            contrast(colors.secondaryLabel, surface),
+            greaterThanOrEqualTo(4.5),
+          );
+        }
+      }
     });
 
     test('dark primary uses iOS system blue', () {
