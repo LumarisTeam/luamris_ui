@@ -304,6 +304,48 @@ void main() {
   });
 
   group('McShimmerLoading', () {
+    testWidgets('skeleton shapes use the theme base color without motion', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(const McSkeletonBox(width: 40, height: 20), reduced: true),
+      );
+      final container = tester.widget<Container>(
+        inside(McSkeletonBox, Container),
+      );
+      expect(
+        (container.decoration! as BoxDecoration).color,
+        McColors.light.skeletonBase,
+      );
+    });
+
+    testWidgets('presets fit a narrow container and render requested lines', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(
+          const SizedBox(
+            width: 180,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                McListItemSkeleton(lines: 3, hasTrailing: true),
+                McCardSkeleton(),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(McListItemSkeleton),
+          matching: find.byType(McSkeletonLine),
+        ),
+        findsNWidgets(3),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('should_stop_shimmer_when_loaded_or_reduced_or_hidden', (
       tester,
     ) async {

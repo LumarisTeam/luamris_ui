@@ -122,16 +122,17 @@ class McCard extends StatelessWidget {
           child: Padding(padding: p, child: child),
         );
       case _McCardVariant.grouped:
+        final groupedSide = BorderSide(color: m.separator, width: 0.5);
         card = DecoratedBox(
           decoration: ShapeDecoration(
             color: m.card,
-            shape: McSmoothCorners.shape(borderRadius, side: hairline),
+            shape: McSmoothCorners.shape(borderRadius, side: groupedSide),
             shadows: m.cardShadow,
           ),
           child: Material(
             type: MaterialType.transparency,
             clipBehavior: Clip.antiAlias,
-            shape: McSmoothCorners.shape(borderRadius, side: hairline),
+            shape: McSmoothCorners.shape(borderRadius, side: groupedSide),
             child: child,
           ),
         );

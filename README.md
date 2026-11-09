@@ -370,10 +370,12 @@ ListView.builder(
 
 McShimmerLoading(
   isLoading: isLoading,
-  skeleton: const McListItemSkeleton(),
+  skeleton: const McListItemSkeleton(lines: 3, hasTrailing: true),
   child: YourLoadedContent(),
 )
 ```
+
+骨架形状也可以单独组合使用；它们会使用当前主题的 `skeletonBase` 色。列表预设的 `lines` 控制文本占位行数，卡片预设只绘制占位形状，如需卡片背景可在 `McShimmerLoading` 外包裹卡片容器。预设宽度随父容器调整，适合窄栏布局。
 
 | 类 | 说明 |
 |------|------|

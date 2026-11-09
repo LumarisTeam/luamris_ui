@@ -14,6 +14,7 @@ import 'popover_menu_demo.dart';
 import 'responsive_demo.dart';
 import 'sidebar_demo.dart';
 import 'toolbar_demo.dart';
+import 'skeleton_demo.dart';
 
 typedef _DemoEntry = ({
   IconData icon,
@@ -69,6 +70,12 @@ class _HomePageState extends State<HomePage> {
           title: '空状态 McEmpty',
           subtitle: 'placeholder · retry',
           page: EmptyDemo(),
+        ),
+        (
+          icon: CupertinoIcons.rectangle_grid_1x2,
+          title: '骨架屏 McSkeleton',
+          subtitle: '基础形状 · 列表 · 卡片 · 加载切换',
+          page: SkeletonDemo(),
         ),
       ],
     ),

@@ -18,7 +18,7 @@ import 'mc_motion.dart';
 class McShimmerLoading extends StatefulWidget {
   final bool isLoading;
 
-  /// Skeleton shown while loading. Defaults to the card-colored surface.
+  /// Skeleton shown while loading. Defaults to a solid placeholder.
   final Widget? skeleton;
 
   /// Content shown once loading finishes.
@@ -118,7 +118,7 @@ class _McShimmerLoadingState extends State<McShimmerLoading>
   }
 
   Widget _buildDefaultSkeleton(BuildContext context) {
-    return ColoredBox(color: context.mc.card);
+    return ColoredBox(color: context.mc.skeletonBase);
   }
 }
 
@@ -144,7 +144,7 @@ class McSkeletonBox extends StatelessWidget {
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: context.mc.card,
+        color: context.mc.skeletonBase,
         borderRadius: borderRadius ?? BorderRadius.circular(4),
       ),
     );
@@ -164,7 +164,10 @@ class McSkeletonCircle extends StatelessWidget {
       width: size,
       height: size,
       margin: margin,
-      decoration: BoxDecoration(color: context.mc.card, shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: context.mc.skeletonBase,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }
@@ -184,7 +187,7 @@ class McSkeletonLine extends StatelessWidget {
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: context.mc.card,
+        color: context.mc.skeletonBase,
         borderRadius: BorderRadius.circular(height / 2),
       ),
     );
@@ -202,7 +205,7 @@ class McListItemSkeleton extends StatelessWidget {
     this.hasLeading = true,
     this.hasTrailing = false,
     this.lines = 2,
-  });
+  }) : assert(lines > 0);
 
   @override
   Widget build(BuildContext context) {
@@ -219,15 +222,14 @@ class McListItemSkeleton extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const McSkeletonLine(
-                  width: double.infinity,
-                  height: 14,
-                  margin: EdgeInsets.only(bottom: 8),
-                ),
-                if (lines > 1)
-                  McSkeletonLine(
-                    width: MediaQuery.sizeOf(context).width * 0.6,
-                    height: 12,
+                for (var index = 0; index < lines; index++)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: index < lines - 1 ? 8 : 0),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: index == 0 ? 1 : 0.6,
+                      child: McSkeletonLine(height: index == 0 ? 14 : 12),
+                    ),
                   ),
               ],
             ),
@@ -252,16 +254,10 @@ class McCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.sizeOf(context).width;
-
     return Container(
       height: height ?? 200,
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.mc.card,
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -275,12 +271,19 @@ class McCardSkeleton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    McSkeletonLine(
-                      width: width * 0.4,
-                      height: 16,
-                      margin: const EdgeInsets.only(bottom: 6),
+                    FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: 0.6,
+                      child: McSkeletonLine(
+                        height: 16,
+                        margin: EdgeInsets.only(bottom: 6),
+                      ),
                     ),
-                    McSkeletonLine(width: width * 0.3, height: 12),
+                    FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: 0.45,
+                      child: McSkeletonLine(height: 12),
+                    ),
                   ],
                 ),
               ),
@@ -292,7 +295,11 @@ class McCardSkeleton extends StatelessWidget {
             height: 14,
             margin: EdgeInsets.only(bottom: 8),
           ),
-          McSkeletonLine(width: width * 0.7, height: 14),
+          const FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: 0.7,
+            child: McSkeletonLine(height: 14),
+          ),
         ],
       ),
     );

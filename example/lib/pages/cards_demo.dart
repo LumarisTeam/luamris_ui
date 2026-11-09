@@ -67,17 +67,24 @@ class CardsDemo extends StatelessWidget {
             child: Column(
               children: [
                 McListTile(
+                  leading: _groupIcon(CupertinoIcons.square_stack_3d_up, m),
                   title: const Text('分组行一'),
-                  subtitle: const Text('零内边距，由列表行自己控制'),
+                  subtitle: const Text('图标 · 标题 · 描述'),
                   showChevron: true,
                   onTap: () => _showTapFeedback(context, '点击了分组行一'),
                 ),
-                Container(
-                  height: 0.5,
-                  color: m.separator.withValues(alpha: 0.5),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 62),
+                  child: SizedBox(
+                    height: 0.5,
+                    width: double.infinity,
+                    child: ColoredBox(color: m.separator),
+                  ),
                 ),
                 McListTile(
+                  leading: _groupIcon(CupertinoIcons.list_bullet, m),
                   title: const Text('分组行二'),
+                  subtitle: const Text('分隔线与文字对齐'),
                   showChevron: true,
                   onTap: () => _showTapFeedback(context, '点击了分组行二'),
                 ),
@@ -111,4 +118,16 @@ class CardsDemo extends StatelessWidget {
 
 Widget _sectionTitle(String text, McTheme m) {
   return Text(text, style: m.textSection);
+}
+
+Widget _groupIcon(IconData icon, McTheme m) {
+  return Container(
+    width: 34,
+    height: 34,
+    decoration: BoxDecoration(
+      color: m.primarySoft,
+      borderRadius: BorderRadius.circular(m.radiusControl),
+    ),
+    child: Icon(icon, color: m.primary, size: 18),
+  );
 }
