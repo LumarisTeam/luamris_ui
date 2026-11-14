@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.3
+
+### Added
+
+- 更新骨架屏和 McCard
+
 ## 0.5.1
 
 ### Added
