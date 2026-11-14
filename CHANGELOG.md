@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.4
+
+### Fixed
+
+- 解决 McCard.grouped 绘制问题
+
 ## 0.5.3
 
 ### Added
