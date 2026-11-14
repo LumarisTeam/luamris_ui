@@ -122,17 +122,25 @@ class McCard extends StatelessWidget {
           child: Padding(padding: p, child: child),
         );
       case _McCardVariant.grouped:
-        final groupedSide = BorderSide(color: m.separator, width: 0.5);
+        final shape = McSmoothCorners.shape(borderRadius, side: hairline);
         card = DecoratedBox(
           decoration: ShapeDecoration(
             color: m.card,
-            shape: McSmoothCorners.shape(borderRadius, side: groupedSide),
+            shape: shape,
             shadows: m.cardShadow,
           ),
           child: Material(
             type: MaterialType.transparency,
             clipBehavior: Clip.antiAlias,
-            shape: McSmoothCorners.shape(borderRadius, side: groupedSide),
+            // The border is already painted by the [ShapeDecoration] above.
+            // Material repaints its shape's border as a foreground painter,
+            // so passing the bordered shape here draws the hairline twice and
+            // turns 10% alpha into ~19% — use a side-less shape for clipping,
+            // keeping the same smoothness so the silhouette matches.
+            shape: McSmoothCorners.shape(
+              borderRadius,
+              smoothness: shape.smoothness,
+            ),
             child: child,
           ),
         );
